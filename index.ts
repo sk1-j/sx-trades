@@ -4,12 +4,11 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import { XMLHttpRequest } from 'xmlhttprequest';
-import { Environments, newSportX } from "@sportx-bet/sportx-js";
+import { Environments, newSportX } from "@sx-bet/sportx-js";
 import {
 	convertToAPIPercentageOdds,
 	convertToTrueTokenAmount
-  } from "@sportx-bet/sportx-js";
+  } from "@sx-bet/sportx-js";
 import * as ably from "ably";
 var sportX;
 
@@ -24,7 +23,7 @@ async function main() {
 
 }
 
-async function getMarket(hash) {
+async function getMarket(hash: string) {
   const sportX2 = await newSportX({
     env: Environments.SxMainnet,
     customSidechainProviderUrl: process.env.PROVIDER,

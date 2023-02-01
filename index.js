@@ -39,7 +39,7 @@ exports.__esModule = true;
 var nameTags = require('./nameTags');
 var dotenv = require("dotenv");
 dotenv.config({ path: '.env' });
-var sportx_js_1 = require("@sportx-bet/sportx-js");
+var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
 var sportX;
 function main() {
