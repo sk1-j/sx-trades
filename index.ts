@@ -61,12 +61,10 @@ async function main() {
           console.log("\n"+currentDate.toLocaleString());
 
           // Check if the bettor is known address
-          var orderDetails = message.data;
-          //console.log(orderDetails);
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
           var doxxedAddress = nameTags.hasOwnProperty(message.data.bettor);
           if(doxxedAddress){
-            console.log("Username: " + nameTags[orderDetails.bettor])
+            console.log("Username: " + nameTags[message.data.bettor])
           }
 
           if(mrkt.length!=0){
@@ -76,7 +74,7 @@ async function main() {
             if(message.data.bettingOutcomeOne === true){
               console.log("Selection: " + mrkt[0].outcomeOneName);
             } 
-            if(orderDetails.bettingOutcomeOne === false){
+            if(message.data.bettingOutcomeOne === false){
               console.log("Selection: " + mrkt[0].outcomeTwoName);
             } 
          } else {
