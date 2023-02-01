@@ -4,7 +4,9 @@
   "description": "Trade scroller for SX.Bet.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc index.ts && node index.js"
+
   },
   "repository": {
     "type": "git",
@@ -24,4 +26,5 @@
     "@sx-bet/sportx-js": "^13.0.2",
     "dotenv": "^16.0.3"
   }
+  
 }
