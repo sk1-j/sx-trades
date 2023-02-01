@@ -122,9 +122,7 @@ const hashValues = {
   '0xeada5f319b93fb9e5140ba34fd536b9134dca304' : 'Lewash17',
   '0xafa64e3b0e0815a63070e8987361aa64f1e7662a' : 'morbida78',
   '0xD95087C04951117a344edbD34A944C41aFC6D10a' : 'Jmac',
-  '0xfb49B3d447Ff5E839E089e62171fCf698D952F07' : 'JacobJohn420'
-
-
-  
+  '0xfb49B3d447Ff5E839E089e62171fCf698D952F07' : 'JacobJohn420',  
+  '0x92A19377DaEA520f7Ae43F412739D8AA439f16e6' : 'Wilson'
 };
 module.exports = hashValues;

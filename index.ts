@@ -10,12 +10,10 @@ import {
 	convertToTrueTokenAmount
   } from "@sx-bet/sportx-js";
 import * as ably from "ably";
-var sportX;
 
 
-
-async function main() {  
-  sportX = await newSportX({
+async function initialize() {  
+  var sportX = await newSportX({
     env: Environments.SxMainnet,
     customSidechainProviderUrl: process.env.PROVIDER,
     privateKey: process.env.PRIVATE_KEY,
@@ -24,30 +22,32 @@ async function main() {
 }
 
 async function getMarket(hash: string) {
-  const sportX2 = await newSportX({
+  var sportX = await newSportX({
     env: Environments.SxMainnet,
-    customSidechainProviderUrl: process.env.PROVIDER,
+    customSidechainProviderUrl: process.env.PROsVIDER,
     privateKey: process.env.PRIVATE_KEY,
   });
 
-  const markets = await sportX2.marketLookup([
+  const markets = await sportX.marketLookup([
     hash,
   ]);
   return(markets);
 }
 
 
-async function initialize() {
+async function main() {
   const realtime = new ably.Realtime.Promise({
     authUrl: `https://api.sx.bet/user/token`,
   });
+
+  
   await new Promise<void>((resolve, reject) => {
     console.log("Connecting...");
 
     realtime.connection.on("connected", () => {
       resolve();
       
-      //Listen for & print trades
+      // Listen for realtime trades
       const channel = realtime.channels.get(`recent_trades`);
       channel.subscribe(async (message) => {
         //Post the purchase order, only when successful
@@ -64,7 +64,7 @@ async function initialize() {
           var orderDetails = message.data;
           //console.log(orderDetails);
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-          const doxxedAddress = nameTags.hasOwnProperty(orderDetails.bettor);
+          var doxxedAddress = nameTags.hasOwnProperty(message.data.bettor);
           if(doxxedAddress){
             console.log("Username: " + nameTags[orderDetails.bettor])
           }
@@ -99,7 +99,7 @@ async function initialize() {
   });
 }
 
-main();
 initialize();
+main();
 
 

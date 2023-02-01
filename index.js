@@ -41,9 +41,9 @@ var dotenv = require("dotenv");
 dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
-var sportX;
-function main() {
+function initialize() {
     return __awaiter(this, void 0, void 0, function () {
+        var sportX;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
@@ -60,17 +60,17 @@ function main() {
 }
 function getMarket(hash) {
     return __awaiter(this, void 0, void 0, function () {
-        var sportX2, markets;
+        var sportX, markets;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
                         env: sportx_js_1.Environments.SxMainnet,
-                        customSidechainProviderUrl: process.env.PROVIDER,
+                        customSidechainProviderUrl: process.env.PROsVIDER,
                         privateKey: process.env.PRIVATE_KEY
                     })];
                 case 1:
-                    sportX2 = _a.sent();
-                    return [4 /*yield*/, sportX2.marketLookup([
+                    sportX = _a.sent();
+                    return [4 /*yield*/, sportX.marketLookup([
                             hash,
                         ])];
                 case 2:
@@ -80,7 +80,7 @@ function getMarket(hash) {
         });
     });
 }
-function initialize() {
+function main() {
     return __awaiter(this, void 0, void 0, function () {
         var realtime;
         var _this = this;
@@ -94,7 +94,7 @@ function initialize() {
                             console.log("Connecting...");
                             realtime.connection.on("connected", function () {
                                 resolve();
-                                //Listen for & print trades
+                                // Listen for realtime trades
                                 var channel = realtime.channels.get("recent_trades");
                                 channel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
                                     var mrkt, currentDate, orderDetails, doxxedAddress;
@@ -109,7 +109,8 @@ function initialize() {
                                                 currentDate = new Date();
                                                 console.log("\n" + currentDate.toLocaleString());
                                                 orderDetails = message.data;
-                                                doxxedAddress = nameTags.hasOwnProperty(orderDetails.bettor);
+                                                doxxedAddress = nameTags.hasOwnProperty(message.data.bettor);
+                                                console.log(doxxedAddress);
                                                 if (doxxedAddress) {
                                                     console.log("Username: " + nameTags[orderDetails.bettor]);
                                                 }
@@ -149,5 +150,5 @@ function initialize() {
         });
     });
 }
-main();
 initialize();
+main();
