@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var nameTags = require('./nameTags');
 var dotenv = require("dotenv");
+var helperFunctions = require("./helperFunctions");
 dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
@@ -53,7 +54,7 @@ function initialize() {
                     })];
                 case 1:
                     sportX = _a.sent();
-                    return [2 /*return*/];
+                    return [2 /*return*/, (sportX)];
             }
         });
     });
@@ -97,7 +98,7 @@ function main() {
                                 // Listen for realtime trades
                                 var channel = realtime.channels.get("recent_trades");
                                 channel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                    var mrkt, currentDate, orderDetails, doxxedAddress;
+                                    var mrkt;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
@@ -106,32 +107,26 @@ function main() {
                                             case 1:
                                                 mrkt = _a.sent();
                                                 console.log("************************************");
-                                                currentDate = new Date();
-                                                console.log("\n" + currentDate.toLocaleString());
-                                                orderDetails = message.data;
-                                                doxxedAddress = nameTags.hasOwnProperty(message.data.bettor);
-                                                console.log(doxxedAddress);
-                                                if (doxxedAddress) {
-                                                    console.log("Username: " + nameTags[orderDetails.bettor]);
+                                                //Get and print the current datetime
+                                                helperFunctions.printTime();
+                                                // Check if the bettor is known address
+                                                //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
+                                                // Some error here, not printing all usernames..
+                                                if (nameTags.hasOwnProperty(message.data.bettor)) {
+                                                    console.log("Username: " + nameTags[message.data.bettor]);
                                                 }
                                                 if (mrkt.length != 0) {
                                                     // Print Event
                                                     console.log("Event: " + mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName);
-                                                    if (message.data.bettingOutcomeOne === true) {
-                                                        console.log("Selection: " + mrkt[0].outcomeOneName);
-                                                    }
-                                                    if (orderDetails.bettingOutcomeOne === false) {
-                                                        console.log("Selection: " + mrkt[0].outcomeTwoName);
-                                                    }
+                                                    //Print takers side of the bet
+                                                    console.log(helperFunctions.takersSelection(message.data.bettingOutcomeOne, mrkt[0].outcomeOneName, mrkt[0].outcomeTwoName));
                                                 }
                                                 else {
                                                     console.log("Error retrieving market details");
                                                 }
                                                 //Output bet details
-                                                //TODO query market with market hash to get better details (which side teams etc)
                                                 console.log("Stake: $" + message.data.betTimeValue +
                                                     "\nDecimal Odds: " + 1 / (message.data.odds / 100000000000000000000));
-                                                //console.log(message.data);
                                                 console.log("Bettor Address: " + message.data.bettor);
                                                 _a.label = 2;
                                             case 2: return [2 /*return*/];

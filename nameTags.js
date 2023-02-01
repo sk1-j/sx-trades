@@ -5,6 +5,7 @@ const hashValues = {
   '0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF': 'CSP',
   '0xf4abd17ad05656697f615e35e9c0c84fd1e0cb1f' : 'Julian?',
   '0x898f5ab5674f8d168c30d5b9a8314b541c610251' : 'Eric',
+  '0x92A19377DaEA520f7Ae43F412739D8AA439f16e6' : 'Wilson',
   '0x63aeeaeff2f48711b9d199dfc27361b589a868bd' : 'chuckmah',
   '0x5e9333624bdae2dcef87ed1d2160e8dcfcc7733e' : 'Sweetedith21',
   '0x4b40ea45db5137dc7c4098b141abb1e83a5f4c32' : 'DarkYonder2',
@@ -71,7 +72,6 @@ const hashValues = {
   '0xdc3594961c5f49200ca76851960e57928046eccb' : 'tewolfbr1',
   '0x05e12b8f05022478a95be4ce5c5a4940666c80c8' : 'Leshwar',
   '0xb86146eb53dd9e4753887f3998142dd6248ec56d' : 'Joebob',
-  '0x449472f3d7e02109b0c616b56650fef42a12d634' : 'spi',
   '0x646b03dabaa9cfe9aa6340f98394b4e4f9b6746a' : 'CashForGrabs',
   '0x5c176f495defe79dcb3a33e526f43669f6b3c66b' : 'Humps35',
   '0x3e10bcaa24a15b7a6848361a59f45ed31de166bd' : 'Jake?* Personal Wallet?*',
@@ -123,6 +123,8 @@ const hashValues = {
   '0xafa64e3b0e0815a63070e8987361aa64f1e7662a' : 'morbida78',
   '0xD95087C04951117a344edbD34A944C41aFC6D10a' : 'Jmac',
   '0xfb49B3d447Ff5E839E089e62171fCf698D952F07' : 'JacobJohn420',  
-  '0x92A19377DaEA520f7Ae43F412739D8AA439f16e6' : 'Wilson'
+  '0x631B34CF9f08615a8653B2438A881FE38211DAb4' : 'Not Wilson',
+  '0x449472f3d7e02109b0c616b56650fef42a12d634' : 'spi',
+
 };
 module.exports = hashValues;

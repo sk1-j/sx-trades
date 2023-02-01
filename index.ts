@@ -1,6 +1,8 @@
 
 const nameTags = require('./nameTags');
 import * as dotenv from 'dotenv';
+import * as helperFunctions from './helperFunctions';
+
 
 dotenv.config({ path: '.env' });
 
@@ -18,7 +20,7 @@ async function initialize() {
     customSidechainProviderUrl: process.env.PROVIDER,
     privateKey: process.env.PRIVATE_KEY,
   });
-
+  return(sportX);
 }
 
 async function getMarket(hash: string) {
@@ -27,7 +29,7 @@ async function getMarket(hash: string) {
     customSidechainProviderUrl: process.env.PROsVIDER,
     privateKey: process.env.PRIVATE_KEY,
   });
-
+  //Lookup market with hash
   const markets = await sportX.marketLookup([
     hash,
   ]);
@@ -57,13 +59,13 @@ async function main() {
 
           console.log("************************************");
           //Get and print the current datetime
-          var currentDate = new Date();
-          console.log("\n"+currentDate.toLocaleString());
+          helperFunctions.printTime();
 
           // Check if the bettor is known address
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-          var doxxedAddress = nameTags.hasOwnProperty(message.data.bettor);
-          if(doxxedAddress){
+          
+          // Some error here, not printing all usernames..
+          if(nameTags.hasOwnProperty(message.data.bettor)){
             console.log("Username: " + nameTags[message.data.bettor])
           }
 
@@ -71,23 +73,16 @@ async function main() {
             // Print Event
             console.log("Event: " + mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName);
             
-            if(message.data.bettingOutcomeOne === true){
-              console.log("Selection: " + mrkt[0].outcomeOneName);
-            } 
-            if(message.data.bettingOutcomeOne === false){
-              console.log("Selection: " + mrkt[0].outcomeTwoName);
-            } 
+            //Print takers side of the bet
+            console.log(helperFunctions.takersSelection(message.data.bettingOutcomeOne,mrkt[0].outcomeOneName,mrkt[0].outcomeTwoName))
+
          } else {
             console.log("Error retrieving market details");
          }
           //Output bet details
-          //TODO query market with market hash to get better details (which side teams etc)
           console.log("Stake: $" + message.data.betTimeValue + 
                       "\nDecimal Odds: "+ 1/(message.data.odds/100000000000000000000));
-          //console.log(message.data);
           console.log("Bettor Address: " + message.data.bettor);
-
-
           }
       });
     });
