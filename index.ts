@@ -1,5 +1,3 @@
-
-const nameTags = require('./nameTags');
 import * as dotenv from 'dotenv';
 import * as helperFunctions from './helperFunctions';
 
@@ -12,6 +10,19 @@ import {
 	convertToTrueTokenAmount
   } from "@sx-bet/sportx-js";
 import * as ably from "ably";
+
+
+const nameTags = require('./nameTags');
+
+
+
+const nameTagsLowerCase = nameTags;
+for (const key in nameTags) {
+  if (nameTags.hasOwnProperty(key)) {
+    nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
+  }
+}
+
 
 
 async function initialize() {  
@@ -65,8 +76,12 @@ async function main() {
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
           
           // Some error here, not printing all usernames..
-          if(nameTags.hasOwnProperty(message.data.bettor)){
-            console.log("Username: " + nameTags[message.data.bettor])
+          // the issue is due to case-sensitive matching with hasOwnProperty
+
+          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
+            console.log("Username: " + nameTagsLowerCase[message.data.bettor.toLowerCase()])
+          } else {
+            console.log("Username not found or User unknown");
           }
 
           if(mrkt.length!=0){

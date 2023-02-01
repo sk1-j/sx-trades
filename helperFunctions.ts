@@ -22,3 +22,13 @@ export function takersSelection(isMakerTeamOne: boolean, outcomeOne: string, out
   } 
   return takersSide;
 }
+
+export function hasOwnPropertyIgnoreCase(obj: any, prop: string): boolean {
+  prop = prop.toLowerCase();
+  for (const key in obj) {
+    if (key.toLowerCase() === prop) {
+      return true;
+    }
+  }
+  return false;
+}

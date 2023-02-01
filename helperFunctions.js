@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
+exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
 //Get and print the current datetime
 function printTime() {
     var currentDate = new Date();
@@ -26,3 +26,13 @@ function takersSelection(isMakerTeamOne, outcomeOne, outcomeTwo) {
     return takersSide;
 }
 exports.takersSelection = takersSelection;
+function hasOwnPropertyIgnoreCase(obj, prop) {
+    prop = prop.toLowerCase();
+    for (var key in obj) {
+        if (key.toLowerCase() === prop) {
+            return true;
+        }
+    }
+    return false;
+}
+exports.hasOwnPropertyIgnoreCase = hasOwnPropertyIgnoreCase;

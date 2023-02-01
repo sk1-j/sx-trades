@@ -36,12 +36,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var nameTags = require('./nameTags');
 var dotenv = require("dotenv");
 var helperFunctions = require("./helperFunctions");
 dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
+var nameTags = require('./nameTags');
+var nameTagsLowerCase = nameTags;
+for (var key in nameTags) {
+    if (nameTags.hasOwnProperty(key)) {
+        nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
+    }
+}
 function initialize() {
     return __awaiter(this, void 0, void 0, function () {
         var sportX;
@@ -112,8 +118,12 @@ function main() {
                                                 // Check if the bettor is known address
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                 // Some error here, not printing all usernames..
-                                                if (nameTags.hasOwnProperty(message.data.bettor)) {
-                                                    console.log("Username: " + nameTags[message.data.bettor]);
+                                                // the issue is due to case-sensitive matching with hasOwnProperty
+                                                if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
+                                                    console.log("Username: " + nameTagsLowerCase[message.data.bettor.toLowerCase()]);
+                                                }
+                                                else {
+                                                    console.log("Username not found or User unknown");
                                                 }
                                                 if (mrkt.length != 0) {
                                                     // Print Event
