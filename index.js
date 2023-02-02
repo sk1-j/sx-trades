@@ -38,10 +38,48 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var dotenv = require("dotenv");
 var helperFunctions = require("./helperFunctions");
+var discord_js_1 = require("discord.js");
 dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
+console.log("Hello...");
+/// New disc int
+var client = new discord_js_1.Client({
+    intents: [discord_js_1.GatewayIntentBits.Guilds]
+});
+client.on("ready", function () {
+    if (client.user) {
+        console.log("Logged in as ".concat(client.user.tag, "!"));
+        //const channel = client.channels.cache.get("967808235048423484");
+        //console.log(channel);
+    }
+    else {
+        console.error("Failed to get user information.");
+    }
+    // Replace "CHANNEL_ID" with the ID of the channel you want to send the message in
+    var discordChannel = client.channels.cache.get('913719533007675425');
+    discordChannel.send("This is a test message from my Discord bot!")
+        .then(function () {
+        console.log("Test message sent successfully.");
+        initialize();
+        main();
+    })["catch"](function (error) {
+        console.error("Failed to send test message:");
+        console.error(error);
+    });
+    console.log("Send Break1.");
+});
+console.log("Send Break2.");
+client.login(process.env.DISCORD_TOKEN)
+    .then(function () {
+    console.log("Login successful.");
+    console.log(client);
+})["catch"](function (error) {
+    console.error("Failed to log in:");
+    console.error(error);
+});
 var nameTags = require('./nameTags');
+//Convert nameTags Hash Map to lowercase
 var nameTagsLowerCase = nameTags;
 for (var key in nameTags) {
     if (nameTags.hasOwnProperty(key)) {
@@ -102,8 +140,8 @@ function main() {
                             realtime.connection.on("connected", function () {
                                 resolve();
                                 // Listen for realtime trades
-                                var channel = realtime.channels.get("recent_trades");
-                                channel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
+                                var sxChannel = realtime.channels.get("recent_trades");
+                                sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
                                     var mrkt;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
@@ -118,7 +156,7 @@ function main() {
                                                 // Check if the bettor is known address
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                 // Some error here, not printing all usernames..
-                                                // the issue is due to case-sensitive matching with hasOwnProperty
+                                                // the issue is due to case-sensitive matching with hasOwnProperty [FIXED]
                                                 if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
                                                     console.log("Username: " + nameTagsLowerCase[message.data.bettor.toLowerCase()]);
                                                 }
@@ -155,5 +193,3 @@ function main() {
         });
     });
 }
-initialize();
-main();

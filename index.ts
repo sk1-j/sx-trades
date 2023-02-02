@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import * as helperFunctions from './helperFunctions';
-
+import { Client, Channel, TextChannel, GatewayIntentBits } from "discord.js";
 
 dotenv.config({ path: '.env' });
 
@@ -10,12 +10,65 @@ import {
 	convertToTrueTokenAmount
   } from "@sx-bet/sportx-js";
 import * as ably from "ably";
+console.log("Hello...");
 
+/// New disc int
+
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds]
+});
+
+
+client.on("ready", () => {
+  if (client.user) {
+    console.log(`Logged in as ${client.user.tag}!`);
+    //const channel = client.channels.cache.get("967808235048423484");
+    //console.log(channel);
+  
+  } else {
+    console.error("Failed to get user information.");
+  }
+
+  // Replace "CHANNEL_ID" with the ID of the channel you want to send the message in
+   const discordChannel = client.channels.cache.get('913719533007675425') as TextChannel;
+
+
+
+
+  discordChannel.send("This is a test message from my Discord bot!")
+    .then(() => {
+      console.log("Test message sent successfully.");
+      initialize();
+      main();
+    })
+    .catch((error) => {
+      console.error("Failed to send test message:");
+      console.error(error);
+    });
+    console.log("Send Break1.");
+});
+console.log("Send Break2.");
+
+
+client.login(process.env.DISCORD_TOKEN)
+  .then(() => {
+    console.log("Login successful.");
+    console.log(client);
+  })
+  .catch((error) => {
+    console.error("Failed to log in:");
+    console.error(error);
+  });
+
+
+
+
+
+  
 
 const nameTags = require('./nameTags');
 
-
-
+//Convert nameTags Hash Map to lowercase
 const nameTagsLowerCase = nameTags;
 for (const key in nameTags) {
   if (nameTags.hasOwnProperty(key)) {
@@ -49,6 +102,8 @@ async function getMarket(hash: string) {
 
 
 async function main() {
+
+  
   const realtime = new ably.Realtime.Promise({
     authUrl: `https://api.sx.bet/user/token`,
   });
@@ -61,8 +116,8 @@ async function main() {
       resolve();
       
       // Listen for realtime trades
-      const channel = realtime.channels.get(`recent_trades`);
-      channel.subscribe(async (message) => {
+      const sxChannel = realtime.channels.get(`recent_trades`);
+      sxChannel.subscribe(async (message) => {
         //Post the purchase order, only when successful
 
         if (message.data.tradeStatus=="SUCCESS"&&message.data.status=="SUCCESS"&&message.data.maker==false){
@@ -76,7 +131,9 @@ async function main() {
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
           
           // Some error here, not printing all usernames..
-          // the issue is due to case-sensitive matching with hasOwnProperty
+          // the issue is due to case-sensitive matching with hasOwnProperty [FIXED]
+
+
 
           if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
             console.log("Username: " + nameTagsLowerCase[message.data.bettor.toLowerCase()])
@@ -106,8 +163,5 @@ async function main() {
     console.log("Connected.");
   });
 }
-
-initialize();
-main();
 
 

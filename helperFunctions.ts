@@ -32,3 +32,5 @@ export function hasOwnPropertyIgnoreCase(obj: any, prop: string): boolean {
   }
   return false;
 }
+
+
