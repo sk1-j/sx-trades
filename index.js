@@ -39,53 +39,72 @@ exports.__esModule = true;
 var dotenv = require("dotenv");
 var helperFunctions = require("./helperFunctions");
 var discord_js_1 = require("discord.js");
+// Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
 console.log("Hello...");
-/// New disc int
-var client = new discord_js_1.Client({
-    intents: [discord_js_1.GatewayIntentBits.Guilds]
-});
-client.on("ready", function () {
-    if (client.user) {
-        console.log("Logged in as ".concat(client.user.tag, "!"));
-        //const channel = client.channels.cache.get("967808235048423484");
-        //console.log(channel);
-    }
-    else {
-        console.error("Failed to get user information.");
-    }
-    // Replace "CHANNEL_ID" with the ID of the channel you want to send the message in
-    var discordChannel = client.channels.cache.get('913719533007675425');
-    discordChannel.send("This is a test message from my Discord bot!")
-        .then(function () {
-        console.log("Test message sent successfully.");
-        initialize();
-        main();
-    })["catch"](function (error) {
-        console.error("Failed to send test message:");
-        console.error(error);
+var sendDiscordMessage = function (token, channelId, message) { return __awaiter(void 0, void 0, void 0, function () {
+    var client;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (!token) {
+                    console.error("Discord token is not provided.");
+                    return [2 /*return*/];
+                }
+                client = new discord_js_1.Client({
+                    intents: [discord_js_1.GatewayIntentBits.Guilds]
+                });
+                // Event listener that is triggered when the client is ready
+                client.on("ready", function () { return __awaiter(void 0, void 0, void 0, function () {
+                    var discordChannel;
+                    return __generator(this, function (_a) {
+                        // Check if the user information is available
+                        if (client.user) {
+                            console.log("Logged in as ".concat(client.user.tag, "!"));
+                        }
+                        else {
+                            console.error("Failed to get user information.");
+                            return [2 /*return*/];
+                        }
+                        discordChannel = client.channels.cache.get(channelId);
+                        // Send the message to the channel
+                        discordChannel.send(message)
+                            .then(function () {
+                            console.log("Message sent successfully.");
+                        })["catch"](function (error) {
+                            console.error("Failed to send message:");
+                            console.error(error);
+                        });
+                        return [2 /*return*/];
+                    });
+                }); });
+                // Login to the Discord client
+                return [4 /*yield*/, client.login(token)
+                        .then(function () {
+                        console.log("Login successful.");
+                    })["catch"](function (error) {
+                        console.error("Failed to log in:");
+                        console.error(error);
+                    })];
+            case 1:
+                // Login to the Discord client
+                _a.sent();
+                return [2 /*return*/];
+        }
     });
-    console.log("Send Break1.");
-});
-console.log("Send Break2.");
-client.login(process.env.DISCORD_TOKEN)
-    .then(function () {
-    console.log("Login successful.");
-    console.log(client);
-})["catch"](function (error) {
-    console.error("Failed to log in:");
-    console.error(error);
-});
+}); };
+// Load the nameTags module
 var nameTags = require('./nameTags');
-//Convert nameTags Hash Map to lowercase
+// Convert the nameTags hash map to lowercase
 var nameTagsLowerCase = nameTags;
 for (var key in nameTags) {
     if (nameTags.hasOwnProperty(key)) {
         nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
     }
 }
+// Initialize the SportX library
 function initialize() {
     return __awaiter(this, void 0, void 0, function () {
         var sportX;
@@ -142,7 +161,7 @@ function main() {
                                 // Listen for realtime trades
                                 var sxChannel = realtime.channels.get("recent_trades");
                                 sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                    var mrkt;
+                                    var mrkt, timeOfBet, username, event, takersBet, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
@@ -150,32 +169,41 @@ function main() {
                                                 return [4 /*yield*/, getMarket(message.data.marketHash)];
                                             case 1:
                                                 mrkt = _a.sent();
+                                                //sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', 'This is a test message from my Discord bot!');
                                                 console.log("************************************");
-                                                //Get and print the current datetime
-                                                helperFunctions.printTime();
-                                                // Check if the bettor is known address
-                                                //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-                                                // Some error here, not printing all usernames..
-                                                // the issue is due to case-sensitive matching with hasOwnProperty [FIXED]
-                                                if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
-                                                    console.log("Username: " + nameTagsLowerCase[message.data.bettor.toLowerCase()]);
-                                                }
-                                                else {
-                                                    console.log("Username not found or User unknown");
-                                                }
+                                                timeOfBet = helperFunctions.printTime();
+                                                outcomeOne = mrkt[0].outcomeOneName;
+                                                outcomeTwo = mrkt[0].outcomeTwoName;
+                                                dollarStake = message.data.betTimeValue;
+                                                decimalOdds = 1 / (message.data.odds / 100000000000000000000);
+                                                takerAddress = message.data.bettor;
                                                 if (mrkt.length != 0) {
                                                     // Print Event
-                                                    console.log("Event: " + mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName);
+                                                    event = mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName;
+                                                    console.log("Event: " + event);
                                                     //Print takers side of the bet
-                                                    console.log(helperFunctions.takersSelection(message.data.bettingOutcomeOne, mrkt[0].outcomeOneName, mrkt[0].outcomeTwoName));
+                                                    takersBet = helperFunctions.takersSelection(message.data.bettingOutcomeOne, outcomeOne, outcomeTwo);
+                                                    console.log(takersBet);
                                                 }
                                                 else {
                                                     console.log("Error retrieving market details");
                                                 }
                                                 //Output bet details
-                                                console.log("Stake: $" + message.data.betTimeValue +
-                                                    "\nDecimal Odds: " + 1 / (message.data.odds / 100000000000000000000));
-                                                console.log("Bettor Address: " + message.data.bettor);
+                                                console.log("Stake: $" + dollarStake +
+                                                    "\nDecimal Odds: " + decimalOdds);
+                                                console.log("Bettor Address: " + takerAddress);
+                                                // Check if the bettor is known address
+                                                //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
+                                                if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
+                                                    username = nameTagsLowerCase[message.data.bettor.toLowerCase()];
+                                                    discordMessage = "\nUser: ".concat(username, "\n__**").concat(event, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker Address: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
+                                                }
+                                                else {
+                                                    discordMessage = "\n__**".concat(event, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
+                                                }
+                                                console.log("Username: " + username);
+                                                console.log(discordMessage);
+                                                sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', discordMessage);
                                                 _a.label = 2;
                                             case 2: return [2 /*return*/];
                                         }
@@ -193,3 +221,5 @@ function main() {
         });
     });
 }
+initialize();
+main();

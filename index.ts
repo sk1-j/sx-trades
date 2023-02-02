@@ -2,73 +2,65 @@ import * as dotenv from 'dotenv';
 import * as helperFunctions from './helperFunctions';
 import { Client, Channel, TextChannel, GatewayIntentBits } from "discord.js";
 
+// Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 
 import { Environments, newSportX } from "@sx-bet/sportx-js";
 import {
-	convertToAPIPercentageOdds,
-	convertToTrueTokenAmount
-  } from "@sx-bet/sportx-js";
+  convertToAPIPercentageOdds,
+  convertToTrueTokenAmount
+} from "@sx-bet/sportx-js";
 import * as ably from "ably";
 console.log("Hello...");
 
-/// New disc int
-
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
-});
-
-
-client.on("ready", () => {
-  if (client.user) {
-    console.log(`Logged in as ${client.user.tag}!`);
-    //const channel = client.channels.cache.get("967808235048423484");
-    //console.log(channel);
-  
-  } else {
-    console.error("Failed to get user information.");
+const sendDiscordMessage = async (token: string | undefined, channelId: string, message: string) => {
+  if (!token) {
+    console.error("Discord token is not provided.");
+    return;
   }
-
-  // Replace "CHANNEL_ID" with the ID of the channel you want to send the message in
-   const discordChannel = client.channels.cache.get('913719533007675425') as TextChannel;
-
-
-
-
-  discordChannel.send("This is a test message from my Discord bot!")
+  // Create a new Discord client
+  const client = new Client({
+    intents: [GatewayIntentBits.Guilds]
+  });
+  
+  // Event listener that is triggered when the client is ready
+  client.on("ready", async () => {
+    // Check if the user information is available
+    if (client.user) {
+      console.log(`Logged in as ${client.user.tag}!`);
+    } else {
+      console.error("Failed to get user information.");
+      return;
+    }
+  
+    // Get the specified Discord channel
+    const discordChannel = client.channels.cache.get(channelId) as TextChannel;
+    // Send the message to the channel
+    discordChannel.send(message)
+      .then(() => {
+        console.log("Message sent successfully.");
+      })
+      .catch((error) => {
+        console.error("Failed to send message:");
+        console.error(error);
+      });
+  });
+  
+  // Login to the Discord client
+  await client.login(token)
     .then(() => {
-      console.log("Test message sent successfully.");
-      initialize();
-      main();
+      console.log("Login successful.");
     })
     .catch((error) => {
-      console.error("Failed to send test message:");
+      console.error("Failed to log in:");
       console.error(error);
     });
-    console.log("Send Break1.");
-});
-console.log("Send Break2.");
+};
 
-
-client.login(process.env.DISCORD_TOKEN)
-  .then(() => {
-    console.log("Login successful.");
-    console.log(client);
-  })
-  .catch((error) => {
-    console.error("Failed to log in:");
-    console.error(error);
-  });
-
-
-
-
-
-  
-
+// Load the nameTags module
 const nameTags = require('./nameTags');
 
-//Convert nameTags Hash Map to lowercase
+// Convert the nameTags hash map to lowercase
 const nameTagsLowerCase = nameTags;
 for (const key in nameTags) {
   if (nameTags.hasOwnProperty(key)) {
@@ -76,15 +68,14 @@ for (const key in nameTags) {
   }
 }
 
-
-
-async function initialize() {  
+// Initialize the SportX library
+async function initialize() {
   var sportX = await newSportX({
     env: Environments.SxMainnet,
     customSidechainProviderUrl: process.env.PROVIDER,
     privateKey: process.env.PRIVATE_KEY,
   });
-  return(sportX);
+  return (sportX);
 }
 
 async function getMarket(hash: string) {
@@ -102,13 +93,9 @@ async function getMarket(hash: string) {
 
 
 async function main() {
-
-  
   const realtime = new ably.Realtime.Promise({
     authUrl: `https://api.sx.bet/user/token`,
   });
-
-  
   await new Promise<void>((resolve, reject) => {
     console.log("Connecting...");
 
@@ -123,45 +110,73 @@ async function main() {
         if (message.data.tradeStatus=="SUCCESS"&&message.data.status=="SUCCESS"&&message.data.maker==false){
           var mrkt = await getMarket(message.data.marketHash);
 
+
+          //sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', 'This is a test message from my Discord bot!');
+
           console.log("************************************");
           //Get and print the current datetime
-          helperFunctions.printTime();
+          var timeOfBet = helperFunctions.printTime();
 
-          // Check if the bettor is known address
-          //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-          
-          // Some error here, not printing all usernames..
-          // the issue is due to case-sensitive matching with hasOwnProperty [FIXED]
+          var username;
+          var event
+          var takersBet;
+          var outcomeOne = mrkt[0].outcomeOneName;
+          var outcomeTwo = mrkt[0].outcomeTwoName;
+          var dollarStake = message.data.betTimeValue;
+          var decimalOdds = 1/(message.data.odds/100000000000000000000);
+          var takerAddress = message.data.bettor;
+          //var makerAddress = message.data.maker;
+
+          var discordMessage;
 
 
 
-          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
-            console.log("Username: " + nameTagsLowerCase[message.data.bettor.toLowerCase()])
-          } else {
-            console.log("Username not found or User unknown");
-          }
 
           if(mrkt.length!=0){
             // Print Event
-            console.log("Event: " + mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName);
+            event = mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName;
+            console.log("Event: " + event);
             
             //Print takers side of the bet
-            console.log(helperFunctions.takersSelection(message.data.bettingOutcomeOne,mrkt[0].outcomeOneName,mrkt[0].outcomeTwoName))
+            takersBet = helperFunctions.takersSelection(message.data.bettingOutcomeOne,outcomeOne,outcomeTwo)
+            console.log(takersBet);
 
-         } else {
-            console.log("Error retrieving market details");
-         }
-          //Output bet details
-          console.log("Stake: $" + message.data.betTimeValue + 
-                      "\nDecimal Odds: "+ 1/(message.data.odds/100000000000000000000));
-          console.log("Bettor Address: " + message.data.bettor);
+          } else {
+              console.log("Error retrieving market details");
           }
+          //Output bet details
+          console.log("Stake: $" + dollarStake + 
+                      "\nDecimal Odds: "+ decimalOdds);
+          console.log("Bettor Address: " + takerAddress);
+
+
+                    // Check if the bettor is known address
+          //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
+          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
+            username = nameTagsLowerCase[message.data.bettor.toLowerCase()]
+            discordMessage = `\nUser: ${username}\n__**${event}**__\n**${takersBet}**\nStake: $${dollarStake}\nOdds: ${decimalOdds}\nTaker Address: ${takerAddress}\n💸💸💸💸💸💸💸💸💸💸💸💸💸💸`;
+
+          } else {
+            discordMessage = `\n__**${event}**__\n**${takersBet}**\nStake: $${dollarStake}\nOdds: ${decimalOdds}\nTaker: ${takerAddress}\n💸💸💸💸💸💸💸💸💸💸💸💸💸💸`;
+          }
+          console.log("Username: " + username)
+
+
+
+          console.log(discordMessage);
+          sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', discordMessage);
+
+
+          }
+
       });
     });
     // 10s timeout to connect
     setTimeout(() => reject(), 10000);
     console.log("Connected.");
   });
+
 }
 
-
+initialize();
+main();

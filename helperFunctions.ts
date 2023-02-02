@@ -2,6 +2,7 @@
 export function printTime() {
   var currentDate = new Date();
   console.log("\n"+currentDate.toLocaleString());  
+  return currentDate;
 }
 
 export function printMarketDetails(event: string, isMakerTeamOne: boolean, outcomeOne: string, outcomeTwo: string, stake: number, odds: number, address: string ){

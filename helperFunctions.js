@@ -5,6 +5,7 @@ exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarket
 function printTime() {
     var currentDate = new Date();
     console.log("\n" + currentDate.toLocaleString());
+    return currentDate;
 }
 exports.printTime = printTime;
 function printMarketDetails(event, isMakerTeamOne, outcomeOne, outcomeTwo, stake, odds, address) {
