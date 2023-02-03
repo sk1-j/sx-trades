@@ -130,7 +130,7 @@ async function main() {
 
           var discordMessage;
 
-
+          console.log("Market deets\n", mrkt);
 
 //BUG HERE
 //IF it is a Totals market is will show "Under X vs Over X: OveX"

@@ -161,7 +161,7 @@ function main() {
                                 // Listen for realtime trades
                                 var sxChannel = realtime.channels.get("recent_trades");
                                 sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                    var mrkt, timeOfBet, username, event, takersBet, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage;
+                                    var mrkt, timeOfBet, username, event, takersBet, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
@@ -177,9 +177,15 @@ function main() {
                                                 dollarStake = message.data.betTimeValue;
                                                 decimalOdds = 1 / (message.data.odds / 100000000000000000000);
                                                 takerAddress = message.data.bettor;
+                                                console.log("Market deets\n", mrkt);
+                                                //BUG HERE
+                                                //IF it is a Totals market is will show "Under X vs Over X: OveX"
+                                                //Change so that is shows PlayerA vs PlayerB: Under X
                                                 if (mrkt.length != 0) {
+                                                    teamOne = mrkt[0].teamOneName;
+                                                    teamTwo = mrkt[0].teamTwoName;
                                                     // Print Event
-                                                    event = mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName;
+                                                    event = teamOne + " vs " + teamTwo;
                                                     console.log("Event: " + event);
                                                     //Print takers side of the bet
                                                     takersBet = helperFunctions.takersSelection(message.data.bettingOutcomeOne, outcomeOne, outcomeTwo);
