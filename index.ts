@@ -174,7 +174,7 @@ async function main() {
          //Send to CSP
           sendDiscordMessage('783878646142205962', discordMessage);
           // Send to private
-          sendDiscordMessage('913719533007675425', discordMessage);
+          //sendDiscordMessage('913719533007675425', discordMessage);
           }
       });
     });
