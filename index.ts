@@ -122,11 +122,13 @@ async function main() {
           var takersBet;
           var outcomeOne = mrkt[0].outcomeOneName;
           var outcomeTwo = mrkt[0].outcomeTwoName;
+
           var dollarStake = message.data.betTimeValue;
           var decimalOdds = 1/(message.data.odds/100000000000000000000);
           var takerAddress = message.data.bettor;
           //var makerAddress = message.data.maker;
-
+          var teamOne = mrkt[0].teamOneName;
+          var teamTwo = mrkt[0].teamTwoName;
           var discordMessage;
 
 
@@ -135,8 +137,9 @@ async function main() {
 //IF it is a Totals market is will show "Under X vs Over X: OveX"
 //Change so that is shows PlayerA vs PlayerB: Under X
           if(mrkt.length!=0){
+
             // Print Event
-            event = mrkt[0].teamOneName + " vs " + mrkt[0].teamTwoName;
+            event = teamOne + " vs " + teamTwo;
             console.log("Event: " + event);
             
             //Print takers side of the bet
