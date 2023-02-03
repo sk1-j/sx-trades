@@ -19,7 +19,7 @@ function takersSelection(isMakerTeamOne, outcomeOne, outcomeTwo) {
     }
     else if (isMakerTeamOne === false) {
         //Then taker is betting on Outcome 1
-        takersSide = outcomeTwo;
+        takersSide = outcomeOne;
     }
     else {
         "Error finding takers side of the bet";
