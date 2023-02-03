@@ -62,7 +62,6 @@ const sendDiscordMessage = async (channelId: string, message: string) => {
 };
 
 
-
 // Load the nameTags module
 const nameTags = require('./nameTags');
 
@@ -97,8 +96,8 @@ async function getMarket(hash: string) {
   return(markets);
 }
 
-
 async function main() {
+  console.log("Enter Main: ", helperFunctions.printTime());
   // Create a new instance of Ably realtime
   const realtime = new ably.Realtime.Promise({
     authUrl: `https://api.sx.bet/user/token`,
@@ -113,15 +112,18 @@ async function main() {
       
       // Listen for realtime trades
       const sxChannel = realtime.channels.get(`recent_trades`);
+      console.log("Subscribed to Recent Trades Channel: ", helperFunctions.printTime());
       sxChannel.subscribe(async (message) => {
         if (message.data.tradeStatus === "SUCCESS" &&
             message.data.status === "SUCCESS" &&
             message.data.maker === false
         ) {
-          // Get market details
-          var mrkt = await getMarket(message.data.marketHash);
 
-          console.log("************************************");
+          // Get market details 
+          console.log("Before get market: ", helperFunctions.printTime());
+          var mrkt = await getMarket(message.data.marketHash);
+          console.log("After get market: ", helperFunctions.printTime());
+
           // Get current datetime
           var timeOfBet = helperFunctions.printTime();
 
@@ -137,10 +139,6 @@ async function main() {
           //var makerAddress = message.data.maker;
 
           let discordMessage;
-
-          console.log("Market deets", mrkt);
-          console.log("Order deets", message.data);
-
 
           // Check if the market has details
           if(mrkt.length!=0){
@@ -158,13 +156,8 @@ async function main() {
           } else {
               console.log("Error retrieving market details");
           }
-          //Output bet details
-          console.log("Stake: $" + dollarStake + 
-                      "\nDecimal Odds: "+ decimalOdds);
-          console.log("Bettor Address: " + takerAddress);
 
-
-                    // Check if the bettor is known address
+          // Check if the bettor is known address
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
           if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
             username = nameTagsLowerCase[message.data.bettor.toLowerCase()]
@@ -172,8 +165,11 @@ async function main() {
           } else {
             discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress);
           }
-          console.log("Username: " + username)
+
+          //Print discord message to console
           console.log(discordMessage);
+
+          //Send discord message to Channel
           sendDiscordMessage('913719533007675425', discordMessage);
           }
       });

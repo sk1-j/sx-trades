@@ -1,55 +1,89 @@
 import { convertFromAPIPercentageOdds } from "@sx-bet/sportx-js";
 
-//Get and print the current datetime
+// Function to print the current date and time to the console
 export function printTime() {
-  var currentDate = new Date();
-  console.log("\n"+currentDate.toLocaleString());  
-  return currentDate;
+  // Get the current date
+  const currentDate = new Date();
+
+  // Print the date and time in a locale-specific format
+  console.log("\n" + currentDate.toLocaleString());  
+
+  // Return the current date
+  return currentDate.toLocaleString();
 }
 
-export function printMarketDetails(event: string, isMakerTeamOne: boolean, outcomeOne: string, outcomeTwo: string, stake: number, odds: number, address: string ){
+// Function to print details about a betting market
+export function printMarketDetails(
+  event: string,
+  isMakerTeamOne: boolean,
+  outcomeOne: string,
+  outcomeTwo: string,
+  stake: number,
+  odds: number,
+  address: string
+) {}
 
-}
+// Function to determine the taker's selected outcome
+export function takersSelection(isMakerTeamOne: boolean, outcomeOne: string, outcomeTwo: string) {
+  let takersSide;
 
-export function takersSelection(isMakerTeamOne: boolean, outcomeOne: string, outcomeTwo: string){
-  var takersSide;
-
-  if(isMakerTeamOne){
-    //Then taker is betting on Outcome 2
+  if (isMakerTeamOne) {
+    // Taker is betting on Outcome 2
     takersSide = outcomeOne;
   } else if (!isMakerTeamOne) {
-    //Then taker is betting on Outcome 1
+    // Taker is betting on Outcome 1
     takersSide = outcomeTwo;
   } else {
-    "Error finding takers side of the bet"
+    // Error finding taker's side of the bet
+    "Error finding taker's side of the bet";
   } 
+
+  // Return the taker's selected outcome
   return takersSide;
 }
 
+// Function to check if an object has a property, ignoring case sensitivity
 export function hasOwnPropertyIgnoreCase(obj: any, prop: string): boolean {
+  // Convert the property name to lowercase
   prop = prop.toLowerCase();
+
+  // Loop through the object properties
   for (const key in obj) {
+    // Check if the lowercase version of the property name matches the desired property
     if (key.toLowerCase() === prop) {
+      // The property exists, return true
       return true;
     }
   }
+
+  // The property does not exist, return false
   return false;
 }
 
+// Function to convert API odds to decimal odds
 export function apiToDecimalOdds(num: string) {
-  var decimalOdds = 1/convertFromAPIPercentageOdds(num);
+  // Calculate the decimal odds
+  const decimalOdds = 1 / convertFromAPIPercentageOdds(num);
+
+  // Round the decimal odds to 3 decimal places and return the result
   return parseFloat(decimalOdds.toFixed(3));
 }
 
-export function compileDiscordMessage(match: string | undefined, takersBet: string | undefined, stake: string, odds: number, taker: string, user?: string ) {
+// Function to compile a Discord message
+export function compileDiscordMessage(
+  match: string | undefined,
+  takersBet: string | undefined,
+  stake: string,
+  odds: number,
+  taker: string,
+  user?: string
+) {
   if (typeof user === "undefined") {
-    //GENERATE MESSGAE HERE WITHOUT USERNAME
-    //console.log(`The required input is: ${requiredInput}`);
-    return `\n${match}\n◇${takersBet}\n$${stake} @ ${odds}\n${taker}\n-------------------`;
-
+    // Generate the message without the username
+    return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${taker}\n`;
   } else {
-    //GENERATE THE MESSAGE HERE WITH USERNAME
-    return `\n${match}\n◇${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}\n-------------------`;
+    // Generate the message with the username
+    return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}`;
   }
 }
-
+``

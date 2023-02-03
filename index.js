@@ -157,6 +157,7 @@ function main() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log("Enter Main: ", helperFunctions.printTime());
                     realtime = new ably.Realtime.Promise({
                         authUrl: "https://api.sx.bet/user/token"
                     });
@@ -167,6 +168,7 @@ function main() {
                                 resolve();
                                 // Listen for realtime trades
                                 var sxChannel = realtime.channels.get("recent_trades");
+                                console.log("Subscribed to Recent Trades Channel: ", helperFunctions.printTime());
                                 sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
                                     var mrkt, timeOfBet, username, event_1, takersBet, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
                                     return __generator(this, function (_a) {
@@ -175,10 +177,12 @@ function main() {
                                                 if (!(message.data.tradeStatus === "SUCCESS" &&
                                                     message.data.status === "SUCCESS" &&
                                                     message.data.maker === false)) return [3 /*break*/, 2];
+                                                // Get market details 
+                                                console.log("Before get market: ", helperFunctions.printTime());
                                                 return [4 /*yield*/, getMarket(message.data.marketHash)];
                                             case 1:
                                                 mrkt = _a.sent();
-                                                console.log("************************************");
+                                                console.log("After get market: ", helperFunctions.printTime());
                                                 timeOfBet = helperFunctions.printTime();
                                                 username = void 0;
                                                 outcomeOne = mrkt[0].outcomeOneName;
@@ -187,8 +191,6 @@ function main() {
                                                 decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
                                                 takerAddress = message.data.bettor;
                                                 discordMessage = void 0;
-                                                console.log("Market deets", mrkt);
-                                                console.log("Order deets", message.data);
                                                 // Check if the market has details
                                                 if (mrkt.length != 0) {
                                                     teamOne = mrkt[0].teamOneName;
@@ -203,10 +205,6 @@ function main() {
                                                 else {
                                                     console.log("Error retrieving market details");
                                                 }
-                                                //Output bet details
-                                                console.log("Stake: $" + dollarStake +
-                                                    "\nDecimal Odds: " + decimalOdds);
-                                                console.log("Bettor Address: " + takerAddress);
                                                 // Check if the bettor is known address
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                 if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
@@ -216,8 +214,9 @@ function main() {
                                                 else {
                                                     discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress);
                                                 }
-                                                console.log("Username: " + username);
+                                                //Print discord message to console
                                                 console.log(discordMessage);
+                                                //Send discord message to Channel
                                                 sendDiscordMessage('913719533007675425', discordMessage);
                                                 _a.label = 2;
                                             case 2: return [2 /*return*/];
