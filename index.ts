@@ -5,7 +5,7 @@ import { Client, Channel, TextChannel, GatewayIntentBits } from "discord.js";
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 
-import { Environments, newSportX } from "@sx-bet/sportx-js";
+import { convertFromAPIPercentageOdds, Environments, newSportX } from "@sx-bet/sportx-js";
 import {
   convertToAPIPercentageOdds,
   convertToTrueTokenAmount
@@ -29,7 +29,7 @@ const setupDiscordClient = async (token: string | undefined) => {
   discordClient.on("ready", async () => {
     // Check if the user information is available
     if (discordClient.user) {
-      console.log(`Logged in as ${discordClient.user.tag}!`);
+      console.log(`Logged into Discord as ${discordClient.user.tag}!`);
     } else {
       console.error("Failed to get user information.");
       return;
@@ -131,9 +131,8 @@ async function main() {
           var takersBet;
           var outcomeOne = mrkt[0].outcomeOneName;
           var outcomeTwo = mrkt[0].outcomeTwoName;
-          var dollarStake = message.data.betTimeValue;
-          message.data.be
-          var decimalOdds = 1/(message.data.odds/100000000000000000000);
+          var dollarStake = message.data.betTimeValue.toFixed(2);
+          var decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
           var takerAddress = message.data.bettor;
           //var makerAddress = message.data.maker;
 
@@ -175,15 +174,9 @@ async function main() {
             discordMessage = `\n__**${event}**__\n**${takersBet}**\nStake: $${dollarStake}\nOdds: ${decimalOdds}\nTaker: ${takerAddress}\n💸💸💸💸💸💸💸💸💸💸💸💸💸💸`;
           }
           console.log("Username: " + username)
-
-
-
           console.log(discordMessage);
           sendDiscordMessage('913719533007675425', discordMessage);
-
-
           }
-
       });
     });
     // 10s timeout to connect

@@ -1,6 +1,7 @@
 "use strict";
 exports.__esModule = true;
-exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
+exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
+var sportx_js_1 = require("@sx-bet/sportx-js");
 //Get and print the current datetime
 function printTime() {
     var currentDate = new Date();
@@ -37,3 +38,8 @@ function hasOwnPropertyIgnoreCase(obj, prop) {
     return false;
 }
 exports.hasOwnPropertyIgnoreCase = hasOwnPropertyIgnoreCase;
+function apiToDecimalOdds(num) {
+    var decimalOdds = 1 / (0, sportx_js_1.convertFromAPIPercentageOdds)(num);
+    return parseFloat(decimalOdds.toFixed(3));
+}
+exports.apiToDecimalOdds = apiToDecimalOdds;

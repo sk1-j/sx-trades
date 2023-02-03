@@ -62,7 +62,7 @@ var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, voi
                     return __generator(this, function (_a) {
                         // Check if the user information is available
                         if (discordClient.user) {
-                            console.log("Logged in as ".concat(discordClient.user.tag, "!"));
+                            console.log("Logged into Discord as ".concat(discordClient.user.tag, "!"));
                         }
                         else {
                             console.error("Failed to get user information.");
@@ -183,9 +183,8 @@ function main() {
                                                 username = void 0;
                                                 outcomeOne = mrkt[0].outcomeOneName;
                                                 outcomeTwo = mrkt[0].outcomeTwoName;
-                                                dollarStake = message.data.betTimeValue;
-                                                message.data.be;
-                                                decimalOdds = 1 / (message.data.odds / 100000000000000000000);
+                                                dollarStake = message.data.betTimeValue.toFixed(2);
+                                                decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
                                                 takerAddress = message.data.bettor;
                                                 discordMessage = void 0;
                                                 console.log("Market deets", mrkt);

@@ -1,3 +1,5 @@
+import { convertFromAPIPercentageOdds } from "@sx-bet/sportx-js";
+
 //Get and print the current datetime
 export function printTime() {
   var currentDate = new Date();
@@ -34,4 +36,8 @@ export function hasOwnPropertyIgnoreCase(obj: any, prop: string): boolean {
   return false;
 }
 
+export function apiToDecimalOdds(num: string) {
+  var decimalOdds = 1/convertFromAPIPercentageOdds(num);
+  return parseFloat(decimalOdds.toFixed(3));
+}
 
