@@ -127,8 +127,7 @@ async function main() {
           var decimalOdds = 1/(message.data.odds/100000000000000000000);
           var takerAddress = message.data.bettor;
           //var makerAddress = message.data.maker;
-          var teamOne = mrkt[0].teamOneName;
-          var teamTwo = mrkt[0].teamTwoName;
+
           var discordMessage;
 
 
@@ -138,6 +137,8 @@ async function main() {
 //Change so that is shows PlayerA vs PlayerB: Under X
           if(mrkt.length!=0){
 
+            var teamOne = mrkt[0].teamOneName;
+            var teamTwo = mrkt[0].teamTwoName;
             // Print Event
             event = teamOne + " vs " + teamTwo;
             console.log("Event: " + event);
