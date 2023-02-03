@@ -131,10 +131,12 @@ async function main() {
 
 
 
-
+//BUG HERE
+//IF it is a Totals market is will show "Under X vs Over X: OveX"
+//Change so that is shows PlayerA vs PlayerB: Under X
           if(mrkt.length!=0){
             // Print Event
-            event = mrkt[0].outcomeOneName + " vs " + mrkt[0].outcomeTwoName;
+            event = mrkt[0].teamOneName + " vs " + mrkt[0].teamTwoName;
             console.log("Event: " + event);
             
             //Print takers side of the bet
