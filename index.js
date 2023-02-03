@@ -168,7 +168,7 @@ function main() {
                                 resolve();
                                 // Listen for realtime trades
                                 var sxChannel = realtime.channels.get("recent_trades");
-                                console.log("Subscribed to Recent Trades Channel: ", helperFunctions.printTime());
+                                console.log("Listening for Trades @ ", helperFunctions.printTime());
                                 sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
                                     var mrkt, timeOfBet, username, event_1, takersBet, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
                                     return __generator(this, function (_a) {
@@ -189,7 +189,7 @@ function main() {
                                                 outcomeTwo = mrkt[0].outcomeTwoName;
                                                 dollarStake = message.data.betTimeValue.toFixed(2);
                                                 decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
-                                                takerAddress = message.data.bettor;
+                                                takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 6);
                                                 discordMessage = void 0;
                                                 // Check if the market has details
                                                 if (mrkt.length != 0) {

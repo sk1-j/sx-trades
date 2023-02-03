@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.compileDiscordMessage = exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
+exports.shortenEthAddress = exports.compileDiscordMessage = exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
 var sportx_js_1 = require("@sx-bet/sportx-js");
 // Function to print the current date and time to the console
 function printTime() {
@@ -62,12 +62,18 @@ exports.apiToDecimalOdds = apiToDecimalOdds;
 function compileDiscordMessage(match, takersBet, stake, odds, taker, user) {
     if (typeof user === "undefined") {
         // Generate the message without the username
-        return "\n**".concat(match, "**\n").concat(takersBet, "\n$").concat(stake, " @ ").concat(odds, "\n").concat(taker, "\n");
+        return "\n**".concat(taker, " bet $").concat(stake, " on ").concat(takersBet, " @ ").concat(odds, "\n").concat(match, "\n");
     }
     else {
         // Generate the message with the username
-        return "\n**".concat(match, "**\n").concat(takersBet, "\n$").concat(stake, " @ ").concat(odds, "\n").concat(user, "\n").concat(taker);
+        //return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}`;
+        return "\n**".concat(user, " bet $").concat(stake, " on ").concat(takersBet, " @ ").concat(odds, "\n").concat(match, "\n");
     }
 }
 exports.compileDiscordMessage = compileDiscordMessage;
 "";
+function shortenEthAddress(address, digits) {
+    if (digits === void 0) { digits = 4; }
+    return "".concat(address.slice(0, digits + 2), "...").concat(address.slice(-digits));
+}
+exports.shortenEthAddress = shortenEthAddress;

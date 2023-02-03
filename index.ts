@@ -112,7 +112,7 @@ async function main() {
       
       // Listen for realtime trades
       const sxChannel = realtime.channels.get(`recent_trades`);
-      console.log("Subscribed to Recent Trades Channel: ", helperFunctions.printTime());
+      console.log("Listening for Trades @ ", helperFunctions.printTime());
       sxChannel.subscribe(async (message) => {
         if (message.data.tradeStatus === "SUCCESS" &&
             message.data.status === "SUCCESS" &&
@@ -135,7 +135,7 @@ async function main() {
           var outcomeTwo = mrkt[0].outcomeTwoName;
           var dollarStake = message.data.betTimeValue.toFixed(2);
           var decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
-          var takerAddress = message.data.bettor;
+          var takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 6);
           //var makerAddress = message.data.maker;
 
           let discordMessage;
