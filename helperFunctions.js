@@ -13,11 +13,11 @@ function printMarketDetails(event, isMakerTeamOne, outcomeOne, outcomeTwo, stake
 exports.printMarketDetails = printMarketDetails;
 function takersSelection(isMakerTeamOne, outcomeOne, outcomeTwo) {
     var takersSide;
-    if (isMakerTeamOne === true) {
+    if (isMakerTeamOne) {
         //Then taker is betting on Outcome 2
-        takersSide = outcomeTwo;
+        takersSide = outcomeOne;
     }
-    else if (isMakerTeamOne === false) {
+    else if (!isMakerTeamOne) {
         //Then taker is betting on Outcome 1
         takersSide = outcomeTwo;
     }

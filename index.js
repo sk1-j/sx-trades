@@ -154,6 +154,7 @@ function main() {
                     realtime = new ably.Realtime.Promise({
                         authUrl: "https://api.sx.bet/user/token"
                     });
+                    // Wait for connection to be established
                     return [4 /*yield*/, new Promise(function (resolve, reject) {
                             console.log("Connecting...");
                             realtime.connection.on("connected", function () {
@@ -161,32 +162,35 @@ function main() {
                                 // Listen for realtime trades
                                 var sxChannel = realtime.channels.get("recent_trades");
                                 sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                    var mrkt, timeOfBet, username, event, takersBet, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
+                                    var mrkt, timeOfBet, username, event_1, takersBet, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
-                                                if (!(message.data.tradeStatus == "SUCCESS" && message.data.status == "SUCCESS" && message.data.maker == false)) return [3 /*break*/, 2];
+                                                if (!(message.data.tradeStatus === "SUCCESS" &&
+                                                    message.data.status === "SUCCESS" &&
+                                                    message.data.maker === false)) return [3 /*break*/, 2];
                                                 return [4 /*yield*/, getMarket(message.data.marketHash)];
                                             case 1:
                                                 mrkt = _a.sent();
-                                                //sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', 'This is a test message from my Discord bot!');
                                                 console.log("************************************");
                                                 timeOfBet = helperFunctions.printTime();
+                                                username = void 0;
                                                 outcomeOne = mrkt[0].outcomeOneName;
                                                 outcomeTwo = mrkt[0].outcomeTwoName;
                                                 dollarStake = message.data.betTimeValue;
+                                                message.data.be;
                                                 decimalOdds = 1 / (message.data.odds / 100000000000000000000);
                                                 takerAddress = message.data.bettor;
-                                                console.log("Market deets\n", mrkt);
-                                                //BUG HERE
-                                                //IF it is a Totals market is will show "Under X vs Over X: OveX"
-                                                //Change so that is shows PlayerA vs PlayerB: Under X
+                                                discordMessage = void 0;
+                                                console.log("Market deets", mrkt);
+                                                console.log("Order deets", message.data);
+                                                // Check if the market has details
                                                 if (mrkt.length != 0) {
                                                     teamOne = mrkt[0].teamOneName;
                                                     teamTwo = mrkt[0].teamTwoName;
                                                     // Print Event
-                                                    event = teamOne + " vs " + teamTwo;
-                                                    console.log("Event: " + event);
+                                                    event_1 = teamOne + " vs " + teamTwo;
+                                                    console.log("Event: " + event_1);
                                                     //Print takers side of the bet
                                                     takersBet = helperFunctions.takersSelection(message.data.bettingOutcomeOne, outcomeOne, outcomeTwo);
                                                     console.log(takersBet);
@@ -202,10 +206,10 @@ function main() {
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                 if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
                                                     username = nameTagsLowerCase[message.data.bettor.toLowerCase()];
-                                                    discordMessage = "\nUser: ".concat(username, "\n__**").concat(event, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker Address: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
+                                                    discordMessage = "\nUser: ".concat(username, "\n__**").concat(event_1, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker Address: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
                                                 }
                                                 else {
-                                                    discordMessage = "\n__**".concat(event, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
+                                                    discordMessage = "\n__**".concat(event_1, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
                                                 }
                                                 console.log("Username: " + username);
                                                 console.log(discordMessage);
@@ -221,6 +225,7 @@ function main() {
                             console.log("Connected.");
                         })];
                 case 1:
+                    // Wait for connection to be established
                     _a.sent();
                     return [2 /*return*/];
             }

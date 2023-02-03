@@ -12,10 +12,10 @@ export function printMarketDetails(event: string, isMakerTeamOne: boolean, outco
 export function takersSelection(isMakerTeamOne: boolean, outcomeOne: string, outcomeTwo: string){
   var takersSide;
 
-  if(isMakerTeamOne === true){
+  if(isMakerTeamOne){
     //Then taker is betting on Outcome 2
-    takersSide = outcomeTwo;
-  } else if (isMakerTeamOne === false) {
+    takersSide = outcomeOne;
+  } else if (!isMakerTeamOne) {
     //Then taker is betting on Outcome 1
     takersSide = outcomeTwo;
   } else {

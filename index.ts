@@ -93,9 +93,12 @@ async function getMarket(hash: string) {
 
 
 async function main() {
+  // Create a new instance of Ably realtime
   const realtime = new ably.Realtime.Promise({
     authUrl: `https://api.sx.bet/user/token`,
   });
+
+  // Wait for connection to be established
   await new Promise<void>((resolve, reject) => {
     console.log("Connecting...");
 
@@ -105,36 +108,36 @@ async function main() {
       // Listen for realtime trades
       const sxChannel = realtime.channels.get(`recent_trades`);
       sxChannel.subscribe(async (message) => {
-        //Post the purchase order, only when successful
-
-        if (message.data.tradeStatus=="SUCCESS"&&message.data.status=="SUCCESS"&&message.data.maker==false){
+        if (message.data.tradeStatus === "SUCCESS" &&
+            message.data.status === "SUCCESS" &&
+            message.data.maker === false
+        ) {
+          // Get market details
           var mrkt = await getMarket(message.data.marketHash);
 
-
-          //sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', 'This is a test message from my Discord bot!');
-
           console.log("************************************");
-          //Get and print the current datetime
+          // Get current datetime
           var timeOfBet = helperFunctions.printTime();
 
-          var username;
-          var event
+           // Initialize variables
+          let username;
+          let event
           var takersBet;
           var outcomeOne = mrkt[0].outcomeOneName;
           var outcomeTwo = mrkt[0].outcomeTwoName;
-
           var dollarStake = message.data.betTimeValue;
+          message.data.be
           var decimalOdds = 1/(message.data.odds/100000000000000000000);
           var takerAddress = message.data.bettor;
           //var makerAddress = message.data.maker;
 
-          var discordMessage;
+          let discordMessage;
 
-          console.log("Market deets\n", mrkt);
+          console.log("Market deets", mrkt);
+          console.log("Order deets", message.data);
 
-//BUG HERE
-//IF it is a Totals market is will show "Under X vs Over X: OveX"
-//Change so that is shows PlayerA vs PlayerB: Under X
+
+          // Check if the market has details
           if(mrkt.length!=0){
 
             var teamOne = mrkt[0].teamOneName;
