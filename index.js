@@ -218,7 +218,8 @@ function main() {
                                                 //Print discord message to console
                                                 console.log(discordMessage);
                                                 //Send discord message to Channel
-                                                sendDiscordMessage('913719533007675425', discordMessage);
+                                                //Send to CSP
+                                                sendDiscordMessage('783878646142205962', discordMessage);
                                                 _a.label = 2;
                                             case 2: return [2 /*return*/];
                                         }
