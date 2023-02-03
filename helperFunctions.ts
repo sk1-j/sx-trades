@@ -80,14 +80,16 @@ export function compileDiscordMessage(
 ) {
   if (typeof user === "undefined") {
     // Generate the message without the username
-    return `\n**${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n`;
+    return `\n💠${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n`;
   } else {
     // Generate the message with the username
     //return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}`;
-    return `\n**${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n`;
+    return `\n💠${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n`;
   }
 }
 ``
 export function shortenEthAddress(address: string, digits = 4): string {
   return `${address.slice(0, digits + 2)}...${address.slice(-digits)}`;
 }
+
+

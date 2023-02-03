@@ -116,7 +116,8 @@ async function main() {
       sxChannel.subscribe(async (message) => {
         if (message.data.tradeStatus === "SUCCESS" &&
             message.data.status === "SUCCESS" &&
-            message.data.maker === false
+            message.data.betTimeValue > 100 &&
+            message.data.maker === false 
         ) {
 
           // Get market details 
@@ -135,7 +136,7 @@ async function main() {
           var outcomeTwo = mrkt[0].outcomeTwoName;
           var dollarStake = message.data.betTimeValue.toFixed(2);
           var decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
-          var takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 6);
+          var takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 5);
           //var makerAddress = message.data.maker;
 
           let discordMessage;

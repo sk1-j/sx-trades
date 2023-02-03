@@ -176,6 +176,7 @@ function main() {
                                             case 0:
                                                 if (!(message.data.tradeStatus === "SUCCESS" &&
                                                     message.data.status === "SUCCESS" &&
+                                                    message.data.betTimeValue > 100 &&
                                                     message.data.maker === false)) return [3 /*break*/, 2];
                                                 // Get market details 
                                                 console.log("Before get market: ", helperFunctions.printTime());
@@ -189,7 +190,7 @@ function main() {
                                                 outcomeTwo = mrkt[0].outcomeTwoName;
                                                 dollarStake = message.data.betTimeValue.toFixed(2);
                                                 decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
-                                                takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 6);
+                                                takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 5);
                                                 discordMessage = void 0;
                                                 // Check if the market has details
                                                 if (mrkt.length != 0) {
