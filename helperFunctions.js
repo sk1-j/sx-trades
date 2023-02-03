@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
+exports.compileDiscordMessage = exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
 var sportx_js_1 = require("@sx-bet/sportx-js");
 //Get and print the current datetime
 function printTime() {
@@ -43,3 +43,15 @@ function apiToDecimalOdds(num) {
     return parseFloat(decimalOdds.toFixed(3));
 }
 exports.apiToDecimalOdds = apiToDecimalOdds;
+function compileDiscordMessage(match, takersBet, stake, odds, taker, user) {
+    if (typeof user === "undefined") {
+        //GENERATE MESSGAE HERE WITHOUT USERNAME
+        //console.log(`The required input is: ${requiredInput}`);
+        return "\n".concat(match, "\n\u25C7").concat(takersBet, "\n$").concat(stake, " @ ").concat(odds, "\n").concat(taker, "\n-------------------");
+    }
+    else {
+        //GENERATE THE MESSAGE HERE WITH USERNAME
+        return "\n".concat(match, "\n\u25C7").concat(takersBet, "\n$").concat(stake, " @ ").concat(odds, "\n").concat(user, "\n").concat(taker, "\n-------------------");
+    }
+}
+exports.compileDiscordMessage = compileDiscordMessage;

@@ -41,3 +41,15 @@ export function apiToDecimalOdds(num: string) {
   return parseFloat(decimalOdds.toFixed(3));
 }
 
+export function compileDiscordMessage(match: string | undefined, takersBet: string | undefined, stake: string, odds: number, taker: string, user?: string ) {
+  if (typeof user === "undefined") {
+    //GENERATE MESSGAE HERE WITHOUT USERNAME
+    //console.log(`The required input is: ${requiredInput}`);
+    return `\n${match}\n◇${takersBet}\n$${stake} @ ${odds}\n${taker}\n-------------------`;
+
+  } else {
+    //GENERATE THE MESSAGE HERE WITH USERNAME
+    return `\n${match}\n◇${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}\n-------------------`;
+  }
+}
+

@@ -211,10 +211,10 @@ function main() {
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                 if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
                                                     username = nameTagsLowerCase[message.data.bettor.toLowerCase()];
-                                                    discordMessage = "\nUser: ".concat(username, "\n__**").concat(event_1, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker Address: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
+                                                    discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, username);
                                                 }
                                                 else {
-                                                    discordMessage = "\n__**".concat(event_1, "**__\n**").concat(takersBet, "**\nStake: $").concat(dollarStake, "\nOdds: ").concat(decimalOdds, "\nTaker: ").concat(takerAddress, "\n\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8\uD83D\uDCB8");
+                                                    discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress);
                                                 }
                                                 console.log("Username: " + username);
                                                 console.log(discordMessage);
