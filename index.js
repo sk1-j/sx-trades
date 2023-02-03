@@ -44,8 +44,8 @@ dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
 console.log("Hello...");
-var sendDiscordMessage = function (token, channelId, message) { return __awaiter(void 0, void 0, void 0, function () {
-    var client;
+var discordClient;
+var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -53,35 +53,26 @@ var sendDiscordMessage = function (token, channelId, message) { return __awaiter
                     console.error("Discord token is not provided.");
                     return [2 /*return*/];
                 }
-                client = new discord_js_1.Client({
+                // Create a new Discord client
+                discordClient = new discord_js_1.Client({
                     intents: [discord_js_1.GatewayIntentBits.Guilds]
                 });
                 // Event listener that is triggered when the client is ready
-                client.on("ready", function () { return __awaiter(void 0, void 0, void 0, function () {
-                    var discordChannel;
+                discordClient.on("ready", function () { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         // Check if the user information is available
-                        if (client.user) {
-                            console.log("Logged in as ".concat(client.user.tag, "!"));
+                        if (discordClient.user) {
+                            console.log("Logged in as ".concat(discordClient.user.tag, "!"));
                         }
                         else {
                             console.error("Failed to get user information.");
                             return [2 /*return*/];
                         }
-                        discordChannel = client.channels.cache.get(channelId);
-                        // Send the message to the channel
-                        discordChannel.send(message)
-                            .then(function () {
-                            console.log("Message sent successfully.");
-                        })["catch"](function (error) {
-                            console.error("Failed to send message:");
-                            console.error(error);
-                        });
                         return [2 /*return*/];
                     });
                 }); });
                 // Login to the Discord client
-                return [4 /*yield*/, client.login(token)
+                return [4 /*yield*/, discordClient.login(token)
                         .then(function () {
                         console.log("Login successful.");
                     })["catch"](function (error) {
@@ -93,6 +84,21 @@ var sendDiscordMessage = function (token, channelId, message) { return __awaiter
                 _a.sent();
                 return [2 /*return*/];
         }
+    });
+}); };
+var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0, void 0, void 0, function () {
+    var discordChannel;
+    return __generator(this, function (_a) {
+        discordChannel = discordClient.channels.cache.get(channelId);
+        // Send the message to the channel
+        discordChannel.send(message)
+            .then(function () {
+            console.log("Message sent successfully.");
+        })["catch"](function (error) {
+            console.error("Failed to send message:");
+            console.error(error);
+        });
+        return [2 /*return*/];
     });
 }); };
 // Load the nameTags module
@@ -213,7 +219,7 @@ function main() {
                                                 }
                                                 console.log("Username: " + username);
                                                 console.log(discordMessage);
-                                                sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', discordMessage);
+                                                sendDiscordMessage('913719533007675425', discordMessage);
                                                 _a.label = 2;
                                             case 2: return [2 /*return*/];
                                         }
@@ -232,5 +238,6 @@ function main() {
         });
     });
 }
+setupDiscordClient(process.env.DISCORD_TOKEN);
 initialize();
 main();

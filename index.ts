@@ -13,41 +13,31 @@ import {
 import * as ably from "ably";
 console.log("Hello...");
 
-const sendDiscordMessage = async (token: string | undefined, channelId: string, message: string) => {
+let discordClient: Client;
+
+const setupDiscordClient = async (token: string | undefined) => {
   if (!token) {
     console.error("Discord token is not provided.");
     return;
   }
   // Create a new Discord client
-  const client = new Client({
+  discordClient = new Client({
     intents: [GatewayIntentBits.Guilds]
   });
   
   // Event listener that is triggered when the client is ready
-  client.on("ready", async () => {
+  discordClient.on("ready", async () => {
     // Check if the user information is available
-    if (client.user) {
-      console.log(`Logged in as ${client.user.tag}!`);
+    if (discordClient.user) {
+      console.log(`Logged in as ${discordClient.user.tag}!`);
     } else {
       console.error("Failed to get user information.");
       return;
     }
-  
-    // Get the specified Discord channel
-    const discordChannel = client.channels.cache.get(channelId) as TextChannel;
-    // Send the message to the channel
-    discordChannel.send(message)
-      .then(() => {
-        console.log("Message sent successfully.");
-      })
-      .catch((error) => {
-        console.error("Failed to send message:");
-        console.error(error);
-      });
   });
   
   // Login to the Discord client
-  await client.login(token)
+  await discordClient.login(token)
     .then(() => {
       console.log("Login successful.");
     })
@@ -56,6 +46,22 @@ const sendDiscordMessage = async (token: string | undefined, channelId: string, 
       console.error(error);
     });
 };
+
+const sendDiscordMessage = async (channelId: string, message: string) => {
+  // Get the specified Discord channel
+  const discordChannel = discordClient.channels.cache.get(channelId) as TextChannel;
+  // Send the message to the channel
+  discordChannel.send(message)
+    .then(() => {
+      console.log("Message sent successfully.");
+    })
+    .catch((error) => {
+      console.error("Failed to send message:");
+      console.error(error);
+    });
+};
+
+
 
 // Load the nameTags module
 const nameTags = require('./nameTags');
@@ -173,7 +179,7 @@ async function main() {
 
 
           console.log(discordMessage);
-          sendDiscordMessage(process.env.DISCORD_TOKEN, '913719533007675425', discordMessage);
+          sendDiscordMessage('913719533007675425', discordMessage);
 
 
           }
@@ -186,6 +192,6 @@ async function main() {
   });
 
 }
-
+setupDiscordClient(process.env.DISCORD_TOKEN);
 initialize();
 main();
