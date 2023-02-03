@@ -13,6 +13,8 @@ import {
 import * as ably from "ably";
 console.log("Hello...");
 
+
+const hideBetsBellow = 500;
 let discordClient: Client;
 
 const setupDiscordClient = async (token: string | undefined) => {
@@ -116,7 +118,7 @@ async function main() {
       sxChannel.subscribe(async (message) => {
         if (message.data.tradeStatus === "SUCCESS" &&
             message.data.status === "SUCCESS" &&
-            message.data.betTimeValue > 100 &&
+            message.data.betTimeValue > hideBetsBellow &&
             message.data.maker === false 
         ) {
 
@@ -132,6 +134,8 @@ async function main() {
           let username;
           let event
           var takersBet;
+          let sport;
+          let league;
           var outcomeOne = mrkt[0].outcomeOneName;
           var outcomeTwo = mrkt[0].outcomeTwoName;
           var dollarStake = message.data.betTimeValue.toFixed(2);
@@ -146,6 +150,10 @@ async function main() {
 
             var teamOne = mrkt[0].teamOneName;
             var teamTwo = mrkt[0].teamTwoName;
+            league = mrkt[0].leagueLabel;
+            sport = mrkt[0].sportLabel;
+
+
             // Print Event
             event = teamOne + " vs " + teamTwo;
             console.log("Event: " + event);
@@ -162,9 +170,9 @@ async function main() {
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
           if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
             username = nameTagsLowerCase[message.data.bettor.toLowerCase()]
-            discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, username);
+            discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, sport, league, username);
           } else {
-            discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress);
+            discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, sport, league);
           }
 
           //Print discord message to console

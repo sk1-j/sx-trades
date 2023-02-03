@@ -76,15 +76,17 @@ export function compileDiscordMessage(
   stake: string,
   odds: number,
   taker: string,
+  sport: string | undefined,
+  league: string | undefined,
   user?: string
 ) {
   if (typeof user === "undefined") {
     // Generate the message without the username
-    return `\n💠${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n`;
+    return `\n💠${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\n`;
   } else {
     // Generate the message with the username
     //return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}`;
-    return `\n💠${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n`;
+    return `\n💠${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\n`;
   }
 }
 ``

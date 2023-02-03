@@ -59,15 +59,15 @@ function apiToDecimalOdds(num) {
 }
 exports.apiToDecimalOdds = apiToDecimalOdds;
 // Function to compile a Discord message
-function compileDiscordMessage(match, takersBet, stake, odds, taker, user) {
+function compileDiscordMessage(match, takersBet, stake, odds, taker, sport, league, user) {
     if (typeof user === "undefined") {
         // Generate the message without the username
-        return "\n\uD83D\uDCA0".concat(taker, " bet $").concat(stake, " on ").concat(takersBet, " @ ").concat(odds, "\n").concat(match, "\n");
+        return "\n\uD83D\uDCA0".concat(taker, " bet $").concat(stake, " on ").concat(takersBet, " @ ").concat(odds, "\n").concat(match, "\n").concat(sport, ": ").concat(league, "\n");
     }
     else {
         // Generate the message with the username
         //return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}`;
-        return "\n\uD83D\uDCA0".concat(user, " bet $").concat(stake, " on ").concat(takersBet, " @ ").concat(odds, "\n").concat(match, "\n");
+        return "\n\uD83D\uDCA0".concat(user, " bet $").concat(stake, " on ").concat(takersBet, " @ ").concat(odds, "\n").concat(match, "\n").concat(sport, ": ").concat(league, "\n");
     }
 }
 exports.compileDiscordMessage = compileDiscordMessage;
