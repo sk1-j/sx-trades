@@ -171,6 +171,9 @@ async function main() {
           console.log(discordMessage);
 
           //Send discord message to Channel
+         //Send to CSP
+          sendDiscordMessage('783878646142205962', discordMessage);
+          // Send to private
           sendDiscordMessage('913719533007675425', discordMessage);
           }
       });
