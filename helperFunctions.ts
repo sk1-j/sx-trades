@@ -1,4 +1,6 @@
 import { convertFromAPIPercentageOdds } from "@sx-bet/sportx-js";
+import Web3 from "web3";
+
 
 // Function to print the current date and time to the console
 export function printTime() {
@@ -76,17 +78,37 @@ export function compileDiscordMessage(
   stake: string,
   odds: number,
   taker: string,
+  marketMaker: string,
   sport: string | undefined,
   league: string | undefined,
-  user?: string
+  user: string,
+  marketMakerUsername: string
 ) {
-  if (typeof user === "undefined") {
-    // Generate the message without the username
-    return `\n💠${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\n`;
-  } else {
+  marketMaker = shortenEthAddress(marketMaker, 5);
+  if (user === "" && marketMakerUsername === "") {
+    console.log("option 1");
+
+    // Generate the message without the username or taker username
+    return `\n💠 ${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMaker}\n`;
+  //Generate message if taker username not found
+  } else if(user === "") {
+    console.log("option 2");
+
+    return `\n💠 ${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMakerUsername}\n`;
+
     // Generate the message with the username
     //return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}`;
-    return `\n💠${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\n`;
+
+  //Generate message if maker username not found
+  } else if(marketMakerUsername === "") {
+    console.log("option 3");
+
+    return `\n💠 ${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMaker}\n`;
+
+  } else {
+    console.log("option 4");
+    return `\n💠 ${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMakerUsername}\n`;
+
   }
 }
 ``
@@ -95,3 +117,15 @@ export function shortenEthAddress(address: string, digits = 4): string {
 }
 
 
+//dont really need this, cant reverse lookup  by addr
+export async function getAddressFromENS(web3: Web3, ethereumAddress: string){
+  const Web3 = require("web3");
+  try {
+    const ensAddress = await Web3.eth.ens.getAddress(ethereumAddress);
+    console.log("The owner of the ENS name is: ", ensAddress);
+    return ensAddress;
+  } catch (error) {
+    console.error("An error occurred: ", error);
+    return null;
+  }
+}

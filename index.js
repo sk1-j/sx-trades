@@ -39,12 +39,19 @@ exports.__esModule = true;
 var dotenv = require("dotenv");
 var helperFunctions = require("./helperFunctions");
 var discord_js_1 = require("discord.js");
+//import Web3 from "web3";
+//const web3 = new Web3(new Web3.providers.HttpProvider(process.env.INFURA_URL));
+//const Web3 = require("web3");
+//const web3: any = await new Web3(process.env.INFURA_URL);
+//console.log(web3.eth);
+//const ensName = await helperFunctions.getENSName(web3, 'test.eth');
+//console.log(ensName);
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
 console.log("Hello...");
-var hideBetsBellow = 500;
+var hideBetsBellow = 1;
 var discordClient;
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
@@ -151,9 +158,11 @@ function getMarket(hash) {
         });
     });
 }
+var makersMessage;
+var takersMessage;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var realtime;
+        var marketMaker, realtime;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -171,14 +180,21 @@ function main() {
                                 var sxChannel = realtime.channels.get("recent_trades");
                                 console.log("Listening for Trades @ ", helperFunctions.printTime());
                                 sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                    var mrkt, timeOfBet, username, event_1, takersBet, sport, league, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
+                                    var mrkt, timeOfBet, username, usernameMaker, event_1, takersBet, sport, league, marketMaker_1, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
+                                                console.log(message.data);
+                                                if (message.data.tradeStatus === "SUCCESS" &&
+                                                    message.data.status === "SUCCESS" &&
+                                                    message.data.maker === true) {
+                                                    makersMessage = message;
+                                                }
                                                 if (!(message.data.tradeStatus === "SUCCESS" &&
                                                     message.data.status === "SUCCESS" &&
                                                     message.data.betTimeValue > hideBetsBellow &&
                                                     message.data.maker === false)) return [3 /*break*/, 2];
+                                                takersMessage = message;
                                                 // Get market details 
                                                 console.log("Before get market: ", helperFunctions.printTime());
                                                 return [4 /*yield*/, getMarket(message.data.marketHash)];
@@ -187,6 +203,7 @@ function main() {
                                                 console.log("After get market: ", helperFunctions.printTime());
                                                 timeOfBet = helperFunctions.printTime();
                                                 username = void 0;
+                                                usernameMaker = void 0;
                                                 sport = void 0;
                                                 league = void 0;
                                                 outcomeOne = mrkt[0].outcomeOneName;
@@ -195,6 +212,17 @@ function main() {
                                                 decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
                                                 takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 5);
                                                 discordMessage = void 0;
+                                                //
+                                                console.log("maker Message", makersMessage);
+                                                console.log("taker Message", takersMessage);
+                                                if (makersMessage && takersMessage && makersMessage.data.orderHash === takersMessage.data.orderHash) {
+                                                    marketMaker_1 = makersMessage.data.bettor;
+                                                    console.log("This maker got filled: " + makersMessage.data.bettor);
+                                                }
+                                                else {
+                                                    marketMaker_1 = "Maker Not Found";
+                                                }
+                                                console.log("market maker:", marketMaker_1);
                                                 // Check if the market has details
                                                 if (mrkt.length != 0) {
                                                     teamOne = mrkt[0].teamOneName;
@@ -215,16 +243,26 @@ function main() {
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                 if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
                                                     username = nameTagsLowerCase[message.data.bettor.toLowerCase()];
-                                                    discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, sport, league, username);
                                                 }
                                                 else {
-                                                    discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, sport, league);
+                                                    username = "";
                                                 }
+                                                // Check if the maker is known address
+                                                //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
+                                                if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker_1)) {
+                                                    usernameMaker = nameTagsLowerCase[marketMaker_1.toLowerCase()];
+                                                }
+                                                else {
+                                                    usernameMaker = "";
+                                                }
+                                                discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker_1, sport, league, username, usernameMaker);
                                                 //Print discord message to console
                                                 console.log(discordMessage);
                                                 //Send discord message to Channel
                                                 //Send to CSP
-                                                sendDiscordMessage('783878646142205962', discordMessage);
+                                                //sendDiscordMessage('783878646142205962', discordMessage);
+                                                // Send to private
+                                                sendDiscordMessage('913719533007675425', discordMessage);
                                                 _a.label = 2;
                                             case 2: return [2 /*return*/];
                                         }
