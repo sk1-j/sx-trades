@@ -53,7 +53,7 @@ for (var key in nameTags) {
     }
 }
 var discordClient;
-var hideBetsBellow = 1;
+var hideBetsBellow = 499;
 // setup Discord client
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
@@ -136,6 +136,43 @@ var getMarket = function (hash) { return __awaiter(void 0, void 0, void 0, funct
 }); };
 var makersMessage;
 var orderHash;
+var getMaker = function (marketHash, fillHash) { return __awaiter(void 0, void 0, void 0, function () {
+    var mrktHash, tradeRequest, sportX, unsettledTrades, desiredFillHash, maker;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                mrktHash = [marketHash];
+                tradeRequest = {
+                    marketHashes: mrktHash,
+                    maker: true
+                };
+                return [4 /*yield*/, (0, sportx_js_1.newSportX)({
+                        env: sportx_js_1.Environments.SxMainnet,
+                        customSidechainProviderUrl: process.env.PROVIDER,
+                        privateKey: process.env.PRIVATE_KEY
+                    })];
+            case 1:
+                sportX = _a.sent();
+                console.log("tradereq", tradeRequest);
+                return [4 /*yield*/, sportX.getTrades(tradeRequest)];
+            case 2:
+                unsettledTrades = _a.sent();
+                console.log("MSG data:", unsettledTrades.trades[0]);
+                desiredFillHash = fillHash;
+                maker = "0x0000000000000000000000000000";
+                console.log("Unsttled trades", unsettledTrades);
+                console.log("Desired Hash", desiredFillHash);
+                unsettledTrades.trades.forEach(function (element, index) {
+                    if (element.fillHash === desiredFillHash && element.maker === true) {
+                        maker = element.bettor;
+                        console.log("This is the element", element);
+                        return (maker);
+                    }
+                });
+                return [2 /*return*/, (maker)];
+        }
+    });
+}); };
 // Initialize the SportX library
 function initialize() {
     return __awaiter(this, void 0, void 0, function () {
@@ -154,9 +191,10 @@ function initialize() {
         });
     });
 }
+var marketMaker;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var sportX, marketMaker, realtime;
+        var sportX, realtime;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -181,7 +219,7 @@ function main() {
                                 var sxChannel = realtime.channels.get("recent_trades");
                                 console.log("Listening for Trades @ ", helperFunctions.printTime());
                                 sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                    var mrktHash, tradeRequest, sportX, unsettledTrades, desiredFillHash_1, maker, mrkt, timeOfBet, username, usernameMaker, event_1, takersBet, sport, league, marketMaker_1, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
+                                    var mrkt, timeOfBet, username, usernameMaker, event_1, takersBet, sport, league, marketMaker_1, outcomeOne, outcomeTwo, dollarStake, decimalOdds, takerAddress, discordMessage, teamOne, teamTwo;
                                     return __generator(this, function (_a) {
                                         switch (_a.label) {
                                             case 0:
@@ -190,43 +228,11 @@ function main() {
                                                 if (!(message.data.tradeStatus === "SUCCESS" &&
                                                     message.data.status === "SUCCESS" &&
                                                     message.data.betTimeValue > hideBetsBellow &&
-                                                    message.data.maker === false)) return [3 /*break*/, 4];
-                                                mrktHash = [message.data.marketHash];
-                                                tradeRequest = {
-                                                    marketHashes: mrktHash,
-                                                    maker: true
-                                                };
-                                                return [4 /*yield*/, (0, sportx_js_1.newSportX)({
-                                                        env: sportx_js_1.Environments.SxMainnet,
-                                                        customSidechainProviderUrl: process.env.PROVIDER,
-                                                        privateKey: process.env.PRIVATE_KEY
-                                                    })];
-                                            case 1:
-                                                sportX = _a.sent();
-                                                console.log("tradereq", tradeRequest);
-                                                return [4 /*yield*/, sportX.getTrades(tradeRequest)];
-                                            case 2:
-                                                unsettledTrades = _a.sent();
-                                                console.log("MSG data:", unsettledTrades.trades[0]);
-                                                desiredFillHash_1 = message.data.fillHash;
-                                                maker = "0x00000000000000000000000000";
-                                                console.log("Unsttled trades", unsettledTrades);
-                                                console.log("Desired Hash", desiredFillHash_1);
-                                                unsettledTrades.trades.forEach(function (element, index) {
-                                                    console.log("Desired Hash:  ", desiredFillHash_1);
-                                                    console.log("Real Hash: ", element.fillHash);
-                                                    console.log("Maker Value: ", element.maker);
-                                                    if (element.fillHash === desiredFillHash_1 && element.maker === true) {
-                                                        maker = element.bettor;
-                                                        console.log("This is the element", element);
-                                                    }
-                                                    //console.log("Fill Hash" + index + " = " + element.fillHash);
-                                                });
-                                                console.log("Maker is:", maker);
+                                                    message.data.maker === false)) return [3 /*break*/, 3];
                                                 // Get market details 
                                                 console.log("Before get market: ", helperFunctions.printTime());
                                                 return [4 /*yield*/, getMarket(message.data.marketHash)];
-                                            case 3:
+                                            case 1:
                                                 mrkt = _a.sent();
                                                 console.log("After get market: ", helperFunctions.printTime());
                                                 timeOfBet = helperFunctions.printTime();
@@ -240,6 +246,10 @@ function main() {
                                                 decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
                                                 takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 5);
                                                 discordMessage = void 0;
+                                                return [4 /*yield*/, getMaker(message.data.marketHash, message.data.fillHash)];
+                                            case 2:
+                                                marketMaker_1 = _a.sent();
+                                                console.log("maker: ", marketMaker_1);
                                                 // Check if the market has details
                                                 if (mrkt.length != 0) {
                                                     teamOne = mrkt[0].teamOneName;
@@ -256,6 +266,7 @@ function main() {
                                                 else {
                                                     console.log("Error retrieving market details");
                                                 }
+                                                console.log("premarker bettor");
                                                 // Check if the bettor is known address
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                 if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)) {
@@ -264,24 +275,23 @@ function main() {
                                                 else {
                                                     username = "";
                                                 }
+                                                console.log("premarker maker");
                                                 // Check if the maker is known address
                                                 //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-                                                if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, maker)) {
-                                                    usernameMaker = nameTagsLowerCase[maker.toLowerCase()];
+                                                if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker_1)) {
+                                                    usernameMaker = nameTagsLowerCase[marketMaker_1.toLowerCase()];
                                                 }
                                                 else {
                                                     usernameMaker = "";
                                                 }
-                                                discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, maker, sport, league, username, usernameMaker);
+                                                discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker_1, sport, league, username, usernameMaker);
                                                 //Print discord message to console
                                                 console.log(discordMessage);
                                                 //Send discord message to Channel
                                                 //Send to CSP
-                                                //sendDiscordMessage('783878646142205962', discordMessage);
-                                                // Send to private
-                                                sendDiscordMessage('913719533007675425', discordMessage);
-                                                _a.label = 4;
-                                            case 4: return [2 /*return*/];
+                                                sendDiscordMessage('783878646142205962', discordMessage);
+                                                _a.label = 3;
+                                            case 3: return [2 /*return*/];
                                         }
                                     });
                                 }); });

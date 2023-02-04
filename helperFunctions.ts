@@ -130,11 +130,4 @@ export async function getAddressFromENS(web3: Web3, ethereumAddress: string){
   }
 }
 
-export function getMaker(array: any, fillHash: string) {
-  for (const obj of array) {
-    if (obj.maker === true && obj.fillHash === fillHash) {
-      return obj.bettor;
-    }
-  }
-  return "can not find";
-}
+

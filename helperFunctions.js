@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.getMaker = exports.getAddressFromENS = exports.shortenEthAddress = exports.compileDiscordMessage = exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
+exports.getAddressFromENS = exports.shortenEthAddress = exports.compileDiscordMessage = exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
 var sportx_js_1 = require("@sx-bet/sportx-js");
 // Function to print the current date and time to the console
 function printTime() {
@@ -152,13 +152,3 @@ function getAddressFromENS(web3, ethereumAddress) {
     });
 }
 exports.getAddressFromENS = getAddressFromENS;
-function getMaker(array, fillHash) {
-    for (var _i = 0, array_1 = array; _i < array_1.length; _i++) {
-        var obj = array_1[_i];
-        if (obj.maker === true && obj.fillHash === fillHash) {
-            return obj.bettor;
-        }
-    }
-    return "can not find";
-}
-exports.getMaker = getMaker;

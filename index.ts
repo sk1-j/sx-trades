@@ -20,7 +20,7 @@ for (const key in nameTags) {
 
 let discordClient: Client;
 
-const hideBetsBellow = 1;
+const hideBetsBellow = 499;
 
 
 // setup Discord client
@@ -85,6 +85,43 @@ let makersMessage: ably.Types.Message;
 let orderHash: ably.Types.Message;
 
 
+const getMaker = async (marketHash: string, fillHash: string) => {
+  var mrktHash = [marketHash]; 
+  // GET MAKER HERE
+  const tradeRequest: IGetTradesRequest = {
+    marketHashes: mrktHash,
+    maker: true,
+  };
+
+  const sportX = await newSportX({
+    env: Environments.SxMainnet,
+    customSidechainProviderUrl: process.env.PROVIDER,
+    privateKey: process.env.PRIVATE_KEY,
+  });
+  console.log("tradereq", tradeRequest);
+  var unsettledTrades = await sportX.getTrades(tradeRequest);
+
+  console.log("MSG data:" , unsettledTrades.trades[0]);
+  const desiredFillHash = fillHash;
+
+  //Find maker here...
+  var maker = "0x0000000000000000000000000000";
+  console.log("Unsttled trades", unsettledTrades);
+
+  console.log("Desired Hash", desiredFillHash);
+
+
+  unsettledTrades.trades.forEach((element, index) => {
+    if(element.fillHash === desiredFillHash && element.maker === true){
+      maker = element.bettor;
+      console.log("This is the element", element);
+      return(maker);
+    } 
+  });  
+  return(maker);
+}
+
+
 
 // Initialize the SportX library
 async function initialize() {
@@ -97,6 +134,7 @@ async function initialize() {
   return (sportX);
 }
 
+let marketMaker;
 async function main() {
 
   var sportX = await newSportX({
@@ -106,15 +144,7 @@ async function main() {
   });
 console.log("HERE");
 
-
-
-
-
-//helperFunctions.searchByOrderHashAndReturnDifferentMaker(unsettledTrades, '0x0fd038aff08b4f405b713e987ce142512e6e7ffa0aa6c40767cb7ca7410a3f46', '0x631B34CF9f08615a8653B2438A881FE38211DAb4');
-
-
   
-  var marketMaker;
   console.log("Enter Main: ", helperFunctions.printTime());
   // Create a new instance of Ably realtime
   const realtime = new ably.Realtime.Promise({
@@ -143,49 +173,6 @@ console.log("HERE");
             message.data.betTimeValue > hideBetsBellow &&
             message.data.maker === false
         ) {
-          var mrktHash = [message.data.marketHash]; 
-          
-          
-          // GET MAKER HERE
-          const tradeRequest: IGetTradesRequest = {
-            marketHashes: mrktHash,
-            maker: true,
-          };
-
-          var sportX = await newSportX({
-            env: Environments.SxMainnet,
-            customSidechainProviderUrl: process.env.PROVIDER,
-            privateKey: process.env.PRIVATE_KEY,
-          });
-          console.log("tradereq", tradeRequest);
-          var unsettledTrades = await sportX.getTrades(tradeRequest);
-
-         
-
-          console.log("MSG data:" , unsettledTrades.trades[0]);
-          const desiredFillHash = message.data.fillHash;
-
-          //Find maker here...
-          var maker = "0x00000000000000000000000000";
-          console.log("Unsttled trades", unsettledTrades);
-
-          console.log("Desired Hash", desiredFillHash);
-
-
-          unsettledTrades.trades.forEach((element, index) => {
-            console.log("Desired Hash:  ", desiredFillHash);
-            console.log("Real Hash: ", element.fillHash);
-            console.log("Maker Value: ", element.maker);
-
-
-            if(element.fillHash === desiredFillHash && element.maker === true){
-              maker = element.bettor
-              console.log("This is the element", element)
-            } 
-            //console.log("Fill Hash" + index + " = " + element.fillHash);
-          });
-          
-          console.log("Maker is:", maker);
 
 
 
@@ -205,7 +192,7 @@ console.log("HERE");
            var takersBet;
            let sport;
            let league;
-           let marketMaker;
+           let marketMaker: any;
            var outcomeOne = mrkt[0].outcomeOneName;
            var outcomeTwo = mrkt[0].outcomeTwoName;
            var dollarStake = message.data.betTimeValue.toFixed(2);
@@ -215,7 +202,10 @@ console.log("HERE");
  
            let discordMessage;
 
+
+           marketMaker = await getMaker(message.data.marketHash, message.data.fillHash);
           
+           console.log("maker: ", marketMaker);
           // Check if the market has details
           if(mrkt.length!=0){
 
@@ -237,6 +227,7 @@ console.log("HERE");
           }
 
 
+          console.log("premarker bettor");
 
           // Check if the bettor is known address
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
@@ -245,15 +236,16 @@ console.log("HERE");
           } else {
             username = "";
           }
+          console.log("premarker maker");
           // Check if the maker is known address
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, maker)){
-            usernameMaker = nameTagsLowerCase[maker.toLowerCase()];
+          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker)){
+            usernameMaker = nameTagsLowerCase[marketMaker.toLowerCase()];
 
           } else {
             usernameMaker = "";
           }
-          discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, maker, sport, league, username, usernameMaker);
+          discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
 
 
           //Print discord message to console
@@ -261,9 +253,9 @@ console.log("HERE");
 
           //Send discord message to Channel
          //Send to CSP
-          //sendDiscordMessage('783878646142205962', discordMessage);
+          sendDiscordMessage('783878646142205962', discordMessage);
           // Send to private
-          sendDiscordMessage('913719533007675425', discordMessage);
+          //sendDiscordMessage('913719533007675425', discordMessage);
           }
       });
     });
