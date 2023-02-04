@@ -50,8 +50,7 @@ var discord_js_1 = require("discord.js");
 dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
-console.log("Hello...");
-var hideBetsBellow = 1;
+var hideBetsBellow = 300;
 var discordClient;
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
