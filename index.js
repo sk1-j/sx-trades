@@ -39,19 +39,22 @@ exports.__esModule = true;
 var dotenv = require("dotenv");
 var helperFunctions = require("./helperFunctions");
 var discord_js_1 = require("discord.js");
-//import Web3 from "web3";
-//const web3 = new Web3(new Web3.providers.HttpProvider(process.env.INFURA_URL));
-//const Web3 = require("web3");
-//const web3: any = await new Web3(process.env.INFURA_URL);
-//console.log(web3.eth);
-//const ensName = await helperFunctions.getENSName(web3, 'test.eth');
-//console.log(ensName);
-// Load the environment variables from .env file
-dotenv.config({ path: '.env' });
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
-var hideBetsBellow = 300;
+// Load the environment variables from .env file
+dotenv.config({ path: '.env' });
+// Load the nameTags module
+var nameTags = require('./nameTags');
+// Convert the nameTags hash map to lowercase
+var nameTagsLowerCase = nameTags;
+for (var key in nameTags) {
+    if (nameTags.hasOwnProperty(key)) {
+        nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
+    }
+}
 var discordClient;
+var hideBetsBellow = 1;
+// setup Discord client
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -60,14 +63,11 @@ var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, voi
                     console.error("Discord token is not provided.");
                     return [2 /*return*/];
                 }
-                // Create a new Discord client
                 discordClient = new discord_js_1.Client({
                     intents: [discord_js_1.GatewayIntentBits.Guilds]
                 });
-                // Event listener that is triggered when the client is ready
                 discordClient.on("ready", function () { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
-                        // Check if the user information is available
                         if (discordClient.user) {
                             console.log("Logged into Discord as ".concat(discordClient.user.tag, "!"));
                         }
@@ -78,7 +78,6 @@ var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, voi
                         return [2 /*return*/];
                     });
                 }); });
-                // Login to the Discord client
                 return [4 /*yield*/, discordClient.login(token)
                         .then(function () {
                         console.log("Login successful.");
@@ -87,17 +86,16 @@ var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, voi
                         console.error(error);
                     })];
             case 1:
-                // Login to the Discord client
                 _a.sent();
                 return [2 /*return*/];
         }
     });
 }); };
+// send a message to a specified Discord channel
 var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0, void 0, void 0, function () {
     var discordChannel;
     return __generator(this, function (_a) {
         discordChannel = discordClient.channels.cache.get(channelId);
-        // Send the message to the channel
         discordChannel.send(message)
             .then(function () {
             console.log("Message sent successfully.");
@@ -108,15 +106,36 @@ var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0
         return [2 /*return*/];
     });
 }); };
-// Load the nameTags module
-var nameTags = require('./nameTags');
-// Convert the nameTags hash map to lowercase
-var nameTagsLowerCase = nameTags;
-for (var key in nameTags) {
-    if (nameTags.hasOwnProperty(key)) {
-        nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
-    }
-}
+// initialize the SportX library
+var initializeSportX = function () { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
+                    env: sportx_js_1.Environments.SxMainnet,
+                    customSidechainProviderUrl: process.env.PROVIDER,
+                    privateKey: process.env.PRIVATE_KEY
+                })];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+// get a market with the specified hash
+var getMarket = function (hash) { return __awaiter(void 0, void 0, void 0, function () {
+    var sportX, markets;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, initializeSportX()];
+            case 1:
+                sportX = _a.sent();
+                return [4 /*yield*/, sportX.marketLookup([hash])];
+            case 2:
+                markets = _a.sent();
+                return [2 /*return*/, markets];
+        }
+    });
+}); };
+var makersMessage;
+var takersMessage;
 // Initialize the SportX library
 function initialize() {
     return __awaiter(this, void 0, void 0, function () {
@@ -135,30 +154,6 @@ function initialize() {
         });
     });
 }
-function getMarket(hash) {
-    return __awaiter(this, void 0, void 0, function () {
-        var sportX, markets;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
-                        env: sportx_js_1.Environments.SxMainnet,
-                        customSidechainProviderUrl: process.env.PROsVIDER,
-                        privateKey: process.env.PRIVATE_KEY
-                    })];
-                case 1:
-                    sportX = _a.sent();
-                    return [4 /*yield*/, sportX.marketLookup([
-                            hash,
-                        ])];
-                case 2:
-                    markets = _a.sent();
-                    return [2 /*return*/, (markets)];
-            }
-        });
-    });
-}
-var makersMessage;
-var takersMessage;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var marketMaker, realtime;
@@ -259,7 +254,9 @@ function main() {
                                                 console.log(discordMessage);
                                                 //Send discord message to Channel
                                                 //Send to CSP
-                                                sendDiscordMessage('783878646142205962', discordMessage);
+                                                //sendDiscordMessage('783878646142205962', discordMessage);
+                                                // Send to private
+                                                sendDiscordMessage('913719533007675425', discordMessage);
                                                 _a.label = 2;
                                             case 2: return [2 /*return*/];
                                         }

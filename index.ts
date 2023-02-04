@@ -1,83 +1,11 @@
 import * as dotenv from 'dotenv';
 import * as helperFunctions from './helperFunctions';
-import { Client, Channel, TextChannel, GatewayIntentBits } from "discord.js";
-
-
-//import Web3 from "web3";
-
-//const web3 = new Web3(new Web3.providers.HttpProvider(process.env.INFURA_URL));
-  
-//const Web3 = require("web3");
-//const web3: any = await new Web3(process.env.INFURA_URL);
-
-//console.log(web3.eth);
-
-//const ensName = await helperFunctions.getENSName(web3, 'test.eth');
-//console.log(ensName);
-
-
+import { Client, TextChannel, GatewayIntentBits } from "discord.js";
+import { convertFromAPIPercentageOdds, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount } from "@sx-bet/sportx-js";
+import * as ably from "ably";
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
-
-import { convertFromAPIPercentageOdds, Environments, newSportX } from "@sx-bet/sportx-js";
-import {
-  convertToAPIPercentageOdds,
-  convertToTrueTokenAmount
-} from "@sx-bet/sportx-js";
-import * as ably from "ably";
-
-
-
-const hideBetsBellow = 300;
-let discordClient: Client;
-
-const setupDiscordClient = async (token: string | undefined) => {
-  if (!token) {
-    console.error("Discord token is not provided.");
-    return;
-  }
-  // Create a new Discord client
-  discordClient = new Client({
-    intents: [GatewayIntentBits.Guilds]
-  });
-  
-  // Event listener that is triggered when the client is ready
-  discordClient.on("ready", async () => {
-    // Check if the user information is available
-    if (discordClient.user) {
-      console.log(`Logged into Discord as ${discordClient.user.tag}!`);
-    } else {
-      console.error("Failed to get user information.");
-      return;
-    }
-  });
-  
-  // Login to the Discord client
-  await discordClient.login(token)
-    .then(() => {
-      console.log("Login successful.");
-    })
-    .catch((error) => {
-      console.error("Failed to log in:");
-      console.error(error);
-    });
-};
-
-const sendDiscordMessage = async (channelId: string, message: string) => {
-  // Get the specified Discord channel
-  const discordChannel = discordClient.channels.cache.get(channelId) as TextChannel;
-  // Send the message to the channel
-  discordChannel.send(message)
-    .then(() => {
-      console.log("Message sent successfully.");
-    })
-    .catch((error) => {
-      console.error("Failed to send message:");
-      console.error(error);
-    });
-};
-
 
 // Load the nameTags module
 const nameTags = require('./nameTags');
@@ -90,6 +18,73 @@ for (const key in nameTags) {
   }
 }
 
+let discordClient: Client;
+
+const hideBetsBellow = 1;
+
+
+// setup Discord client
+const setupDiscordClient = async (token: string | undefined) => {
+  if (!token) {
+    console.error("Discord token is not provided.");
+    return;
+  }
+  discordClient = new Client({
+    intents: [GatewayIntentBits.Guilds]
+  });
+  
+  discordClient.on("ready", async () => {
+    if (discordClient.user) {
+      console.log(`Logged into Discord as ${discordClient.user.tag}!`);
+    } else {
+      console.error("Failed to get user information.");
+      return;
+    }
+  });
+  
+  await discordClient.login(token)
+    .then(() => {
+      console.log("Login successful.");
+    })
+    .catch((error) => {
+      console.error("Failed to log in:");
+      console.error(error);
+    });
+};
+
+// send a message to a specified Discord channel
+const sendDiscordMessage = async (channelId: string, message: string) => {
+  const discordChannel = discordClient.channels.cache.get(channelId) as TextChannel;
+  discordChannel.send(message)
+    .then(() => {
+      console.log("Message sent successfully.");
+    })
+    .catch((error) => {
+      console.error("Failed to send message:");
+      console.error(error);
+    });
+};
+
+// initialize the SportX library
+const initializeSportX = async () => {
+  return await newSportX({
+    env: Environments.SxMainnet,
+    customSidechainProviderUrl: process.env.PROVIDER,
+    privateKey: process.env.PRIVATE_KEY,
+  });
+};
+
+// get a market with the specified hash
+const getMarket = async (hash: string) => {
+  const sportX = await initializeSportX();
+  const markets = await sportX.marketLookup([hash]);
+  return markets;
+};
+
+let makersMessage: ably.Types.Message;
+let takersMessage: ably.Types.Message;
+
+
 // Initialize the SportX library
 async function initialize() {
 
@@ -100,23 +95,6 @@ async function initialize() {
   });
   return (sportX);
 }
-
-async function getMarket(hash: string) {
-  var sportX = await newSportX({
-    env: Environments.SxMainnet,
-    customSidechainProviderUrl: process.env.PROsVIDER,
-    privateKey: process.env.PRIVATE_KEY,
-  });
-  //Lookup market with hash
-  const markets = await sportX.marketLookup([
-    hash,
-  ]);
-  return(markets);
-}
-
-
-let makersMessage: ably.Types.Message;
-let takersMessage: ably.Types.Message;
 
 async function main() {
   var marketMaker;
@@ -237,9 +215,9 @@ async function main() {
 
           //Send discord message to Channel
          //Send to CSP
-          sendDiscordMessage('783878646142205962', discordMessage);
+          //sendDiscordMessage('783878646142205962', discordMessage);
           // Send to private
-          //sendDiscordMessage('913719533007675425', discordMessage);
+          sendDiscordMessage('913719533007675425', discordMessage);
           }
       });
     });
