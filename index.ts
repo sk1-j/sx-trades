@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import * as helperFunctions from './helperFunctions';
 import { Client, TextChannel, GatewayIntentBits } from "discord.js";
-import { convertFromAPIPercentageOdds, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount } from "@sx-bet/sportx-js";
+import { convertFromAPIPercentageOdds, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest } from "@sx-bet/sportx-js";
 import * as ably from "ably";
 
 // Load the environment variables from .env file
@@ -82,7 +82,8 @@ const getMarket = async (hash: string) => {
 };
 
 let makersMessage: ably.Types.Message;
-let takersMessage: ably.Types.Message;
+let orderHash: ably.Types.Message;
+
 
 
 // Initialize the SportX library
@@ -97,6 +98,22 @@ async function initialize() {
 }
 
 async function main() {
+
+  var sportX = await newSportX({
+    env: Environments.SxMainnet,
+    customSidechainProviderUrl: process.env.PROVIDER,
+    privateKey: process.env.PRIVATE_KEY,
+  });
+console.log("HERE");
+
+
+
+
+
+//helperFunctions.searchByOrderHashAndReturnDifferentMaker(unsettledTrades, '0x0fd038aff08b4f405b713e987ce142512e6e7ffa0aa6c40767cb7ca7410a3f46', '0x631B34CF9f08615a8653B2438A881FE38211DAb4');
+
+
+  
   var marketMaker;
   console.log("Enter Main: ", helperFunctions.printTime());
   // Create a new instance of Ably realtime
@@ -116,22 +133,63 @@ async function main() {
       const sxChannel = realtime.channels.get(`recent_trades`);
       console.log("Listening for Trades @ ", helperFunctions.printTime());
       sxChannel.subscribe(async (message) => {
-        console.log(message.data);
+        console.log("MSG DATA", message.data);
+        console.log("END OF MSG DATA");
 
 
-        if (message.data.tradeStatus === "SUCCESS" &&
-        message.data.status === "SUCCESS" &&
-        message.data.maker === true 
-        ) { 
-          makersMessage = message;
-        }
-
+        
         if (message.data.tradeStatus === "SUCCESS" &&
             message.data.status === "SUCCESS" &&
             message.data.betTimeValue > hideBetsBellow &&
-            message.data.maker === false 
+            message.data.maker === false
         ) {
-          takersMessage = message;
+          var mrktHash = [message.data.marketHash]; 
+          
+          
+          // GET MAKER HERE
+          const tradeRequest: IGetTradesRequest = {
+            marketHashes: mrktHash,
+            maker: true,
+          };
+
+          var sportX = await newSportX({
+            env: Environments.SxMainnet,
+            customSidechainProviderUrl: process.env.PROVIDER,
+            privateKey: process.env.PRIVATE_KEY,
+          });
+          console.log("tradereq", tradeRequest);
+          var unsettledTrades = await sportX.getTrades(tradeRequest);
+
+         
+
+          console.log("MSG data:" , unsettledTrades.trades[0]);
+          const desiredFillHash = message.data.fillHash;
+
+          //Find maker here...
+          var maker = "0x00000000000000000000000000";
+          console.log("Unsttled trades", unsettledTrades);
+
+          console.log("Desired Hash", desiredFillHash);
+
+
+          unsettledTrades.trades.forEach((element, index) => {
+            console.log("Desired Hash:  ", desiredFillHash);
+            console.log("Real Hash: ", element.fillHash);
+            console.log("Maker Value: ", element.maker);
+
+
+            if(element.fillHash === desiredFillHash && element.maker === true){
+              maker = element.bettor
+              console.log("This is the element", element)
+            } 
+            //console.log("Fill Hash" + index + " = " + element.fillHash);
+          });
+          
+          console.log("Maker is:", maker);
+
+
+
+
           // Get market details 
           console.log("Before get market: ", helperFunctions.printTime());
           var mrkt = await getMarket(message.data.marketHash);
@@ -157,19 +215,7 @@ async function main() {
  
            let discordMessage;
 
-          //
-          console.log("maker Message", makersMessage);
-          console.log("taker Message", takersMessage);
-          if(makersMessage && takersMessage && makersMessage.data.orderHash === takersMessage.data.orderHash)
-          {
-            marketMaker = makersMessage.data.bettor;
-            console.log("This maker got filled: " + makersMessage.data.bettor);
-          } else {
-            marketMaker = "Maker Not Found";
-          }
-          console.log("market maker:", marketMaker);
-
-
+          
           // Check if the market has details
           if(mrkt.length!=0){
 
@@ -201,13 +247,13 @@ async function main() {
           }
           // Check if the maker is known address
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker)){
-            usernameMaker = nameTagsLowerCase[marketMaker.toLowerCase()];
+          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, maker)){
+            usernameMaker = nameTagsLowerCase[maker.toLowerCase()];
 
           } else {
             usernameMaker = "";
           }
-          discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
+          discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, maker, sport, league, username, usernameMaker);
 
 
           //Print discord message to console

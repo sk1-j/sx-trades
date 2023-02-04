@@ -1,4 +1,4 @@
-import { convertFromAPIPercentageOdds } from "@sx-bet/sportx-js";
+import { convertFromAPIPercentageOdds, IGetTradesRequest, ITrade, ITradesResponse } from "@sx-bet/sportx-js";
 import Web3 from "web3";
 
 
@@ -128,4 +128,13 @@ export async function getAddressFromENS(web3: Web3, ethereumAddress: string){
     console.error("An error occurred: ", error);
     return null;
   }
+}
+
+export function getMaker(array: any, fillHash: string) {
+  for (const obj of array) {
+    if (obj.maker === true && obj.fillHash === fillHash) {
+      return obj.bettor;
+    }
+  }
+  return "can not find";
 }
