@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import * as helperFunctions from './helperFunctions';
 import { Client, TextChannel, GatewayIntentBits } from "discord.js";
-import { convertFromAPIPercentageOdds, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest } from "@sx-bet/sportx-js";
+import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest } from "@sx-bet/sportx-js";
 import * as ably from "ably";
 
 // Load the environment variables from .env file
@@ -65,18 +65,8 @@ const sendDiscordMessage = async (channelId: string, message: string) => {
     });
 };
 
-// initialize the SportX library
-const initializeSportX = async () => {
-  return await newSportX({
-    env: Environments.SxMainnet,
-    customSidechainProviderUrl: process.env.PROVIDER,
-    privateKey: process.env.PRIVATE_KEY,
-  });
-};
-
 // get a market with the specified hash
-const getMarket = async (hash: string) => {
-  const sportX = await initializeSportX();
+const getMarket = async (hash: string, sportX: ISportX) => {
   const markets = await sportX.marketLookup([hash]);
   return markets;
 };
@@ -85,7 +75,7 @@ let makersMessage: ably.Types.Message;
 let orderHash: ably.Types.Message;
 
 
-const getMaker = async (marketHash: string, fillHash: string) => {
+const getMaker = async (marketHash: string, fillHash: string, sportX: ISportX) => {
   var mrktHash = [marketHash]; 
   // GET MAKER HERE
   const tradeRequest: IGetTradesRequest = {
@@ -93,28 +83,20 @@ const getMaker = async (marketHash: string, fillHash: string) => {
     maker: true,
   };
 
-  const sportX = await newSportX({
-    env: Environments.SxMainnet,
-    customSidechainProviderUrl: process.env.PROVIDER,
-    privateKey: process.env.PRIVATE_KEY,
-  });
-  console.log("tradereq", tradeRequest);
+  //console.log("tradereq", tradeRequest);
   var unsettledTrades = await sportX.getTrades(tradeRequest);
 
-  console.log("MSG data:" , unsettledTrades.trades[0]);
+  //console.log("MSG data:" , unsettledTrades.trades[0]);
   const desiredFillHash = fillHash;
 
   //Find maker here...
   var maker = "0x0000000000000000000000000000";
-  console.log("Unsttled trades", unsettledTrades);
-
-  console.log("Desired Hash", desiredFillHash);
-
+  //console.log("Unsttled trades", unsettledTrades);
+  //console.log("Desired Hash", desiredFillHash);
 
   unsettledTrades.trades.forEach((element, index) => {
     if(element.fillHash === desiredFillHash && element.maker === true){
       maker = element.bettor;
-      console.log("This is the element", element);
       return(maker);
     } 
   });  
@@ -123,27 +105,14 @@ const getMaker = async (marketHash: string, fillHash: string) => {
 
 
 
-// Initialize the SportX library
-async function initialize() {
-
-  var sportX = await newSportX({
-    env: Environments.SxMainnet,
-    customSidechainProviderUrl: process.env.PROVIDER,
-    privateKey: process.env.PRIVATE_KEY,
-  });
-  return (sportX);
-}
-
 let marketMaker;
 async function main() {
 
-  var sportX = await newSportX({
+  const sportX = await newSportX({
     env: Environments.SxMainnet,
     customSidechainProviderUrl: process.env.PROVIDER,
     privateKey: process.env.PRIVATE_KEY,
   });
-console.log("HERE");
-
   
   console.log("Enter Main: ", helperFunctions.printTime());
   // Create a new instance of Ably realtime
@@ -163,11 +132,8 @@ console.log("HERE");
       const sxChannel = realtime.channels.get(`recent_trades`);
       console.log("Listening for Trades @ ", helperFunctions.printTime());
       sxChannel.subscribe(async (message) => {
-        console.log("MSG DATA", message.data);
-        console.log("END OF MSG DATA");
 
 
-        
         if (message.data.tradeStatus === "SUCCESS" &&
             message.data.status === "SUCCESS" &&
             message.data.betTimeValue > hideBetsBellow &&
@@ -175,11 +141,9 @@ console.log("HERE");
         ) {
 
 
-
-
           // Get market details 
           console.log("Before get market: ", helperFunctions.printTime());
-          var mrkt = await getMarket(message.data.marketHash);
+          var mrkt = await getMarket(message.data.marketHash,sportX);
           console.log("After get market: ", helperFunctions.printTime());
 
           // Get current datetime
@@ -203,7 +167,7 @@ console.log("HERE");
            let discordMessage;
 
 
-           marketMaker = await getMaker(message.data.marketHash, message.data.fillHash);
+           marketMaker = await getMaker(message.data.marketHash, message.data.fillHash,sportX);
           
            console.log("maker: ", marketMaker);
           // Check if the market has details
@@ -227,7 +191,6 @@ console.log("HERE");
           }
 
 
-          console.log("premarker bettor");
 
           // Check if the bettor is known address
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
@@ -236,7 +199,6 @@ console.log("HERE");
           } else {
             username = "";
           }
-          console.log("premarker maker");
           // Check if the maker is known address
           //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
           if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker)){
@@ -266,5 +228,4 @@ console.log("HERE");
 
 }
 setupDiscordClient(process.env.DISCORD_TOKEN);
-initialize();
 main();

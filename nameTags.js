@@ -5,6 +5,7 @@ const hashValues = {
   '0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF': 'CSP',
   '0xf4abd17ad05656697f615e35e9c0c84fd1e0cb1f' : 'Julian?',
   '0x898f5ab5674f8d168c30d5b9a8314b541c610251' : 'Eric',
+  '0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626' : 'CoachNurse',
   '0x63aeeaeff2f48711b9d199dfc27361b589a868bd' : 'chuckmah',
   '0x5e9333624bdae2dcef87ed1d2160e8dcfcc7733e' : 'Sweetedith21',
   '0x4b40ea45db5137dc7c4098b141abb1e83a5f4c32' : 'DarkYonder2',
@@ -24,6 +25,7 @@ const hashValues = {
   '0x25e6402bbd9304706ec9fd851ec7b8a9a523e952' : 'GlassersPicks',
   '0xd4258c04a5e41023b4a2cf9f41749db395aa3ed7' : 'Razeus',
   '0xddf3fd6917278a5605ebc9905ee4186527bfe0e6' : 'Ryankamuf/Moof',
+  '0xb1B0844e686d3F23832b0962aa3001A1f3AbBCb3' : 'Bet Credits', // SX Network USDC Bet credits
   '0x1414a242fb0e57e05d3bcff8a68889e1f5c9f804' : 'jp27',
   '0xa485b29915c5520ee82c8b15b7757558b7fd08c7' : 'invest0r',
   '0xda23b1ebd059404a4fd771120be55cd61e723743' : 'AG',
