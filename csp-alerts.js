@@ -53,7 +53,7 @@ for (var key in nameTags) {
     }
 }
 var discordClient;
-var hideBetsBellow = 500;
+var hideBetsBellow = 1;
 // setup Discord client
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
@@ -182,11 +182,11 @@ function main() {
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
-                                                    console.log("MESSAGE", message);
                                                     if (!(message.data.tradeStatus === "SUCCESS" &&
                                                         message.data.status === "SUCCESS" &&
                                                         message.data.betTimeValue > hideBetsBellow &&
                                                         message.data.maker === false)) return [3 /*break*/, 3];
+                                                    console.log("MESSAGE", message);
                                                     // Get market details 
                                                     console.log("Before get market: ", helperFunctions.printTime());
                                                     return [4 /*yield*/, getMarket(message.data.marketHash, sportX)];
@@ -236,19 +236,23 @@ function main() {
                                                     //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
                                                     if (helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker_1)) {
                                                         usernameMaker = nameTagsLowerCase[marketMaker_1.toLowerCase()];
-                                                        if (usernameMaker === "CSP") {
-                                                            usernameMaker = "<@281233046227779585>";
+                                                        console.log("usernameMaker", usernameMaker);
+                                                        if (usernameMaker === "SK1") {
+                                                            discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker_1, sport, league, username, usernameMaker);
+                                                            //Send discord message to Channel
+                                                            //Send to CSP
+                                                            //sendDiscordMessage('783878646142205962', discordMessage);
+                                                            // Send to private
+                                                            sendDiscordMessage('913719533007675425', discordMessage);
+                                                            //to Danksi
+                                                            //sendDiscordMessage('418940152778457099', discordMessage);
                                                         }
                                                     }
                                                     else {
                                                         usernameMaker = "";
                                                     }
-                                                    discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker_1, sport, league, username, usernameMaker);
                                                     //Print discord message to console
                                                     console.log(discordMessage);
-                                                    //Send discord message to Channel
-                                                    //Send to CSP
-                                                    sendDiscordMessage('783878646142205962', discordMessage);
                                                     _a.label = 3;
                                                 case 3: return [2 /*return*/];
                                             }

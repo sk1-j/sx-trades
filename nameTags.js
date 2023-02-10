@@ -6,6 +6,7 @@ const hashValues = {
   '0xf4abd17ad05656697f615e35e9c0c84fd1e0cb1f' : 'Julian?',
   '0x898f5ab5674f8d168c30d5b9a8314b541c610251' : 'Eric',
   '0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626' : 'CoachNurse',
+  '0x631B34CF9f08615a8653B2438A881FE38211DAb4' : 'SK1',
   '0x63aeeaeff2f48711b9d199dfc27361b589a868bd' : 'chuckmah',
   '0x5e9333624bdae2dcef87ed1d2160e8dcfcc7733e' : 'Sweetedith21',
   '0x4b40ea45db5137dc7c4098b141abb1e83a5f4c32' : 'DarkYonder2',

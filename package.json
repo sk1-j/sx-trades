@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc index.ts && node index.js"
+    "start": "tsc index.ts && node index.js",
+    "start-csp-alerts": "tsc csp-alerts.ts && node csp-alerts.js"
+
   },
   "repository": {
     "type": "git",

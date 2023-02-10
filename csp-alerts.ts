@@ -20,7 +20,7 @@ for (const key in nameTags) {
 
 let discordClient: Client;
 
-const hideBetsBellow = 500;
+const hideBetsBellow = 1;
 
 
 // setup Discord client
@@ -134,7 +134,6 @@ async function main() {
         const sxChannel = realtime.channels.get(`recent_trades`);
         console.log("Listening for Trades @ ", helperFunctions.printTime());
         sxChannel.subscribe(async (message) => {
-          console.log("MESSAGE", message);
 
 
 
@@ -143,6 +142,8 @@ async function main() {
               message.data.betTimeValue > hideBetsBellow &&
               message.data.maker === false
           ) {
+
+            console.log("MESSAGE", message);
 
 
             // Get market details 
@@ -207,24 +208,29 @@ async function main() {
             //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
             if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker)){
               usernameMaker = nameTagsLowerCase[marketMaker.toLowerCase()];
-              if(usernameMaker==="CSP"){
-                usernameMaker = "<@281233046227779585>";
+              console.log("usernameMaker", usernameMaker);
+              if(usernameMaker === "SK1")
+              {
+                discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
+            //Send discord message to Channel
+          //Send to CSP
+            //sendDiscordMessage('783878646142205962', discordMessage);
+            // Send to private
+            sendDiscordMessage('913719533007675425', discordMessage);
+            //to Danksi
+            //sendDiscordMessage('418940152778457099', discordMessage);
+            
               }
 
             } else {
               usernameMaker = "";
             }
-            discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
 
 
             //Print discord message to console
             console.log(discordMessage);
 
-            //Send discord message to Channel
-          //Send to CSP
-            sendDiscordMessage('783878646142205962', discordMessage);
-            // Send to private
-            //sendDiscordMessage('913719533007675425', discordMessage);
+
             }
         });
         logicExecuted = true;
