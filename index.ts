@@ -84,6 +84,7 @@ const getMaker = async (marketHash: string, fillHash: string, sportX: ISportX) =
   };
 
   //console.log("tradereq", tradeRequest);
+  //Need to look through every page when doing getTrades
   var unsettledTrades = await sportX.getTrades(tradeRequest);
 
   //console.log("MSG data:" , unsettledTrades.trades[0]);
@@ -124,102 +125,105 @@ async function main() {
   // Wait for connection to be established
   await new Promise<void>((resolve, reject) => {
     console.log("Connecting...");
+    let logicExecuted = false;
 
     realtime.connection.on("connected", () => {
       resolve();
-      
-      // Listen for realtime trades
-      const sxChannel = realtime.channels.get(`recent_trades`);
-      console.log("Listening for Trades @ ", helperFunctions.printTime());
-      sxChannel.subscribe(async (message) => {
+      if(!logicExecuted) {
+        // Listen for realtime trades
+        const sxChannel = realtime.channels.get(`recent_trades`);
+        console.log("Listening for Trades @ ", helperFunctions.printTime());
+        sxChannel.subscribe(async (message) => {
 
 
-        if (message.data.tradeStatus === "SUCCESS" &&
-            message.data.status === "SUCCESS" &&
-            message.data.betTimeValue > hideBetsBellow &&
-            message.data.maker === false
-        ) {
+          if (message.data.tradeStatus === "SUCCESS" &&
+              message.data.status === "SUCCESS" &&
+              message.data.betTimeValue > hideBetsBellow &&
+              message.data.maker === false
+          ) {
 
 
-          // Get market details 
-          console.log("Before get market: ", helperFunctions.printTime());
-          var mrkt = await getMarket(message.data.marketHash,sportX);
-          console.log("After get market: ", helperFunctions.printTime());
+            // Get market details 
+            console.log("Before get market: ", helperFunctions.printTime());
+            var mrkt = await getMarket(message.data.marketHash,sportX);
+            console.log("After get market: ", helperFunctions.printTime());
 
-          // Get current datetime
-          var timeOfBet = helperFunctions.printTime();
+            // Get current datetime
+            var timeOfBet = helperFunctions.printTime();
 
-           // Initialize variables
-           let username;
-           let usernameMaker;
-           let event
-           var takersBet;
-           let sport;
-           let league;
-           let marketMaker: any;
-           var outcomeOne = mrkt[0].outcomeOneName;
-           var outcomeTwo = mrkt[0].outcomeTwoName;
-           var dollarStake = message.data.betTimeValue.toFixed(2);
-           var decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
-           var takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 5);
-           //var makerAddress = message.data.maker;
- 
-           let discordMessage;
+            // Initialize variables
+            let username;
+            let usernameMaker;
+            let event
+            var takersBet;
+            let sport;
+            let league;
+            let marketMaker: any;
+            var outcomeOne = mrkt[0].outcomeOneName;
+            var outcomeTwo = mrkt[0].outcomeTwoName;
+            var dollarStake = message.data.betTimeValue.toFixed(2);
+            var decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
+            var takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 5);
+            //var makerAddress = message.data.maker;
+  
+            let discordMessage;
 
 
-           marketMaker = await getMaker(message.data.marketHash, message.data.fillHash,sportX);
-          
-           console.log("maker: ", marketMaker);
-          // Check if the market has details
-          if(mrkt.length!=0){
-
-            var teamOne = mrkt[0].teamOneName;
-            var teamTwo = mrkt[0].teamTwoName;
-            league = mrkt[0].leagueLabel;
-            sport = mrkt[0].sportLabel;
-
-            // Print Event
-            event = teamOne + " vs " + teamTwo;
-            console.log("Event: " + event);
+            marketMaker = await getMaker(message.data.marketHash, message.data.fillHash,sportX);
             
-            //Print takers side of the bet
-            takersBet = helperFunctions.takersSelection(message.data.bettingOutcomeOne,outcomeOne,outcomeTwo)
-            console.log(takersBet);
+            console.log("maker: ", marketMaker);
+            // Check if the market has details
+            if(mrkt.length!=0){
 
-          } else {
-              console.log("Error retrieving market details");
-          }
+              var teamOne = mrkt[0].teamOneName;
+              var teamTwo = mrkt[0].teamTwoName;
+              league = mrkt[0].leagueLabel;
+              sport = mrkt[0].sportLabel;
 
+              // Print Event
+              event = teamOne + " vs " + teamTwo;
+              console.log("Event: " + event);
+              
+              //Print takers side of the bet
+              takersBet = helperFunctions.takersSelection(message.data.bettingOutcomeOne,outcomeOne,outcomeTwo)
+              console.log(takersBet);
 
-
-          // Check if the bettor is known address
-          //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
-            username = nameTagsLowerCase[message.data.bettor.toLowerCase()]
-          } else {
-            username = "";
-          }
-          // Check if the maker is known address
-          //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
-          if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker)){
-            usernameMaker = nameTagsLowerCase[marketMaker.toLowerCase()];
-
-          } else {
-            usernameMaker = "";
-          }
-          discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
+            } else {
+                console.log("Error retrieving market details");
+            }
 
 
-          //Print discord message to console
-          console.log(discordMessage);
 
-          //Send discord message to Channel
-         //Send to CSP
-          sendDiscordMessage('783878646142205962', discordMessage);
-          // Send to private
-          //sendDiscordMessage('913719533007675425', discordMessage);
-          }
-      });
+            // Check if the bettor is known address
+            //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
+            if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor)){
+              username = nameTagsLowerCase[message.data.bettor.toLowerCase()]
+            } else {
+              username = "";
+            }
+            // Check if the maker is known address
+            //Checks if an address is doxxed by looking up the bettor address against known address in nameTags.js
+            if(helperFunctions.hasOwnPropertyIgnoreCase(nameTags, marketMaker)){
+              usernameMaker = nameTagsLowerCase[marketMaker.toLowerCase()];
+
+            } else {
+              usernameMaker = "";
+            }
+            discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
+
+
+            //Print discord message to console
+            console.log(discordMessage);
+
+            //Send discord message to Channel
+          //Send to CSP
+            sendDiscordMessage('783878646142205962', discordMessage);
+            // Send to private
+            //sendDiscordMessage('913719533007675425', discordMessage);
+            }
+        });
+        logicExecuted = true;
+      }
     });
     // 10s timeout to connect
     setTimeout(() => reject(), 10000);
