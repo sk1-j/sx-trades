@@ -227,21 +227,24 @@ async function main() {
               if(usernameMaker==="CSP"){
                 usernameMaker = "<@281233046227779585>";
               }
+              if(usernameMaker==="SK1"){
+                usernameMaker = "<@418940152778457099>";
+              }
 
             } else {
               usernameMaker = "";
             }
-            discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
+              if(dollarStake > 499 || usernameMaker === '<@281233046227779585>' || usernameMaker ===  '<@418940152778457099>'){
+                discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
+                //Print discord message to console
+                console.log(discordMessage);
 
-
-            //Print discord message to console
-            console.log(discordMessage);
-
-            //Send discord message to Channel
-          //Send to CSP
-            //sendDiscordMessage('783878646142205962', discordMessage);
-            // Send to private
-            sendDiscordMessage('913719533007675425', discordMessage);
+                //Send discord message to Channel
+              //Send to CSP
+                sendDiscordMessage('783878646142205962', discordMessage);
+                // Send to private
+                //sendDiscordMessage('913719533007675425', discordMessage);
+              }
             }
         });
         logicExecuted = true;
