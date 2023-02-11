@@ -53,7 +53,7 @@ for (var key in nameTags) {
     }
 }
 var discordClient;
-var hideBetsBellow = 500;
+var hideBetsBellow = 1;
 // setup Discord client
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
@@ -121,7 +121,7 @@ var getMarket = function (hash, sportX) { return __awaiter(void 0, void 0, void 
 var makersMessage;
 var orderHash;
 var getMaker = function (marketHash, fillHash, orderHash, sportX) { return __awaiter(void 0, void 0, void 0, function () {
-    var mrktHash, tradeRequest, unsettledTrades, desiredFillHash, maker;
+    var mrktHash, tradeRequest, unsettledTrades, desiredFillHash, maker, tradeRequest;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -133,19 +133,35 @@ var getMaker = function (marketHash, fillHash, orderHash, sportX) { return __awa
                 return [4 /*yield*/, sportX.getTrades(tradeRequest)];
             case 1:
                 unsettledTrades = _a.sent();
-                console.log("UNSETTLEDTRADES", unsettledTrades);
+                //console.log("UNSETTLEDTRADES", unsettledTrades);
                 console.log("MSG data:", unsettledTrades.trades[0]);
                 desiredFillHash = fillHash;
                 maker = "0x0000000000000000000000000000";
                 //console.log("Unsttled trades", unsettledTrades);
                 console.log("Desired Hash", desiredFillHash);
+                console.log("Next Key:", unsettledTrades.nextKey);
+                _a.label = 2;
+            case 2:
+                if (!(unsettledTrades.nextKey != undefined)) return [3 /*break*/, 4];
+                // console.log("Now iterating thru:", unsettledTrades);
+                console.log("next key:", unsettledTrades.nextKey);
                 unsettledTrades.trades.forEach(function (element, index) {
                     if (element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS") {
+                        console.log("found elemnt");
                         maker = element.bettor;
                         return (maker);
                     }
                 });
-                return [2 /*return*/, (maker)];
+                tradeRequest = {
+                    marketHashes: mrktHash,
+                    maker: true,
+                    paginationKey: unsettledTrades.nextKey
+                };
+                return [4 /*yield*/, sportX.getTrades(tradeRequest)];
+            case 3:
+                unsettledTrades = _a.sent();
+                return [3 /*break*/, 2];
+            case 4: return [2 /*return*/, (maker)];
         }
     });
 }); };
@@ -182,7 +198,6 @@ function main() {
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
-                                                    console.log("MESSAGE", message);
                                                     if (!(message.data.tradeStatus === "SUCCESS" &&
                                                         message.data.status === "SUCCESS" &&
                                                         message.data.betTimeValue > hideBetsBellow &&
@@ -248,7 +263,9 @@ function main() {
                                                     console.log(discordMessage);
                                                     //Send discord message to Channel
                                                     //Send to CSP
-                                                    sendDiscordMessage('783878646142205962', discordMessage);
+                                                    //sendDiscordMessage('783878646142205962', discordMessage);
+                                                    // Send to private
+                                                    sendDiscordMessage('913719533007675425', discordMessage);
                                                     _a.label = 3;
                                                 case 3: return [2 /*return*/];
                                             }

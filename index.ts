@@ -20,7 +20,7 @@ for (const key in nameTags) {
 
 let discordClient: Client;
 
-const hideBetsBellow = 500;
+const hideBetsBellow = 1;
 
 
 // setup Discord client
@@ -78,15 +78,15 @@ let orderHash: ably.Types.Message;
 const getMaker = async (marketHash: string, fillHash: string, orderHash: string, sportX: ISportX) => {
   var mrktHash = [marketHash]; 
   // GET MAKER HERE
-  const tradeRequest: IGetTradesRequest = {
+  var tradeRequest: IGetTradesRequest = {
     marketHashes: mrktHash,
-    maker: true
+    maker: true,
   };
 
   //console.log("tradereq", tradeRequest);
   //Need to look through every page when doing getTrades
   var unsettledTrades = await sportX.getTrades(tradeRequest);
-  console.log("UNSETTLEDTRADES", unsettledTrades);
+  //console.log("UNSETTLEDTRADES", unsettledTrades);
   console.log("MSG data:" , unsettledTrades.trades[0]);
   const desiredFillHash = fillHash;
 
@@ -95,12 +95,29 @@ const getMaker = async (marketHash: string, fillHash: string, orderHash: string,
   //console.log("Unsttled trades", unsettledTrades);
   console.log("Desired Hash", desiredFillHash);
 
-  unsettledTrades.trades.forEach((element, index) => {
-    if(element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS"){
-      maker = element.bettor;
-      return(maker);
-    } 
-  });  
+console.log("Next Key:", unsettledTrades.nextKey);
+  while(unsettledTrades.nextKey!=undefined)
+
+  {
+   // console.log("Now iterating thru:", unsettledTrades);
+    console.log("next key:", unsettledTrades.nextKey);
+
+    unsettledTrades.trades.forEach((element, index) => {
+      if(element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS"){
+        console.log("found elemnt");
+        maker = element.bettor;
+        return(maker);
+      } 
+    });  
+
+    var tradeRequest: IGetTradesRequest = {
+      marketHashes: mrktHash,
+      maker: true,
+      paginationKey: unsettledTrades.nextKey
+    };
+    unsettledTrades = await sportX.getTrades(tradeRequest);  
+  }
+
   return(maker);
 }
 
@@ -134,7 +151,7 @@ async function main() {
         const sxChannel = realtime.channels.get(`recent_trades`);
         console.log("Listening for Trades @ ", helperFunctions.printTime());
         sxChannel.subscribe(async (message) => {
-          console.log("MESSAGE", message);
+          //console.log("MESSAGE", message);
 
 
 
@@ -222,9 +239,9 @@ async function main() {
 
             //Send discord message to Channel
           //Send to CSP
-            sendDiscordMessage('783878646142205962', discordMessage);
+            //sendDiscordMessage('783878646142205962', discordMessage);
             // Send to private
-            //sendDiscordMessage('913719533007675425', discordMessage);
+            sendDiscordMessage('913719533007675425', discordMessage);
             }
         });
         logicExecuted = true;
