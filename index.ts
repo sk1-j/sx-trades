@@ -75,7 +75,7 @@ let makersMessage: ably.Types.Message;
 let orderHash: ably.Types.Message;
 
 
-const getMaker = async (marketHash: string, fillHash: string, sportX: ISportX) => {
+const getMaker = async (marketHash: string, fillHash: string, orderHash: string, sportX: ISportX) => {
   var mrktHash = [marketHash]; 
   // GET MAKER HERE
   const tradeRequest: IGetTradesRequest = {
@@ -96,7 +96,7 @@ const getMaker = async (marketHash: string, fillHash: string, sportX: ISportX) =
   console.log("Desired Hash", desiredFillHash);
 
   unsettledTrades.trades.forEach((element, index) => {
-    if(element.fillHash === desiredFillHash && element.maker === true && element.tradeStatus === "SUCCESS"){
+    if(element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS"){
       maker = element.bettor;
       return(maker);
     } 
@@ -171,7 +171,7 @@ async function main() {
             let discordMessage;
 
 
-            marketMaker = await getMaker(message.data.marketHash, message.data.fillHash,sportX);
+            marketMaker = await getMaker(message.data.marketHash, message.data.fillHash,message.data.orderHash,sportX);
             
             console.log("maker: ", marketMaker);
             // Check if the market has details

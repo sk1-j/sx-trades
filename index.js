@@ -120,7 +120,7 @@ var getMarket = function (hash, sportX) { return __awaiter(void 0, void 0, void 
 }); };
 var makersMessage;
 var orderHash;
-var getMaker = function (marketHash, fillHash, sportX) { return __awaiter(void 0, void 0, void 0, function () {
+var getMaker = function (marketHash, fillHash, orderHash, sportX) { return __awaiter(void 0, void 0, void 0, function () {
     var mrktHash, tradeRequest, unsettledTrades, desiredFillHash, maker;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -140,7 +140,7 @@ var getMaker = function (marketHash, fillHash, sportX) { return __awaiter(void 0
                 //console.log("Unsttled trades", unsettledTrades);
                 console.log("Desired Hash", desiredFillHash);
                 unsettledTrades.trades.forEach(function (element, index) {
-                    if (element.fillHash === desiredFillHash && element.maker === true && element.tradeStatus === "SUCCESS") {
+                    if (element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS") {
                         maker = element.bettor;
                         return (maker);
                     }
@@ -204,7 +204,7 @@ function main() {
                                                     decimalOdds = helperFunctions.apiToDecimalOdds(message.data.odds);
                                                     takerAddress = helperFunctions.shortenEthAddress(message.data.bettor, 5);
                                                     discordMessage = void 0;
-                                                    return [4 /*yield*/, getMaker(message.data.marketHash, message.data.fillHash, sportX)];
+                                                    return [4 /*yield*/, getMaker(message.data.marketHash, message.data.fillHash, message.data.orderHash, sportX)];
                                                 case 2:
                                                     marketMaker_1 = _a.sent();
                                                     console.log("maker: ", marketMaker_1);
