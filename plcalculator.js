@@ -40,11 +40,13 @@ var dotenv = require("dotenv");
 var helperFunctions = require("./helperFunctions");
 var discord_js_1 = require("discord.js");
 var sportx_js_1 = require("@sx-bet/sportx-js");
+var fs = require("fs");
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 // Load the nameTags module
 var discordClient;
 var hideBetsBellow = 1;
+;
 // setup Discord client
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
@@ -160,62 +162,118 @@ var getMaker = function (marketHash, fillHash, orderHash, sportX) { return __awa
 var marketMaker;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var sportX, tradeRequest, searchedPages, allTrades, firstPage, profit, firstPaginationKey, pageinationKey;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var sportX, tradeRequest, searchedPages, uniqueHashes, allTrades, addressFile, jsonAddressFile, addressStats, tradesByAddress, _loop_1, addressRequest, addressPageOne, profit, addressFirstPaginationKey, addressFirstPaginationKey, pageNum, _i, _a, value;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
                         env: sportx_js_1.Environments.SxMainnet,
                         customSidechainProviderUrl: process.env.PROVIDER,
-                        privateKey: process.env.PRIVATE_KEY
+                        privateKey: process.env.PRIVATE_KEY,
+                        apiKey: process.env.API_UKEY
                     })];
                 case 1:
-                    sportX = _a.sent();
+                    sportX = _b.sent();
                     tradeRequest = {
-                        bettor: "0x7ebd0b8B13Fc85B8b639dd05675F94fB445Ffd0E",
+                        // bettor: "0x631B34CF9f08615a8653B2438A881FE38211DAb4",
                         settled: true
                     };
                     searchedPages = [];
+                    uniqueHashes = [];
                     allTrades = [];
-                    return [4 /*yield*/, sportX.getTrades(tradeRequest)];
-                case 2:
-                    firstPage = _a.sent();
-                    profit = 0;
-                    firstPage.trades.forEach(function (trade, index) {
-                        allTrades.push(trade);
-                    });
-                    console.log("you are here");
-                    firstPaginationKey = firstPage.nextKey;
-                    tradeRequest.paginationKey = firstPage.nextKey;
-                    pageinationKey = '';
-                    _a.label = 3;
-                case 3:
-                    if (!(firstPaginationKey != pageinationKey)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, sportX.getTrades(tradeRequest)];
-                case 4:
-                    firstPage = _a.sent();
-                    tradeRequest.paginationKey = firstPage.nextKey;
-                    pageinationKey = firstPage.nextKey;
-                    if (firstPage.nextKey != firstPaginationKey) {
-                        firstPage.trades.forEach(function (trade, index) {
-                            allTrades.push(trade);
+                    console.log("unique hash", uniqueHashes);
+                    addressFile = fs.readFileSync('test.json');
+                    jsonAddressFile = JSON.parse(addressFile.toString());
+                    tradesByAddress = [];
+                    _loop_1 = function (value) {
+                        var allAddressTrades;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0:
+                                    console.log(value);
+                                    allAddressTrades = [];
+                                    addressRequest = {
+                                        bettor: value
+                                    };
+                                    return [4 /*yield*/, sportX.getTrades(addressRequest)];
+                                case 1:
+                                    //Need to look through every page when doing getTrades
+                                    addressPageOne = _c.sent();
+                                    profit = 0;
+                                    addressFirstPaginationKey = addressPageOne.nextKey;
+                                    addressRequest.paginationKey = addressPageOne.nextKey;
+                                    addressFirstPaginationKey = '';
+                                    pageNum = 0;
+                                    _c.label = 2;
+                                case 2:
+                                    if (!(addressFirstPaginationKey != addressFirstPaginationKey)) return [3 /*break*/, 4];
+                                    return [4 /*yield*/, sportX.getTrades(tradeRequest)];
+                                case 3:
+                                    addressPageOne = _c.sent();
+                                    addressRequest.paginationKey = addressPageOne.nextKey;
+                                    addressFirstPaginationKey = addressPageOne.nextKey;
+                                    if (addressPageOne.nextKey != addressFirstPaginationKey) {
+                                        addressPageOne.trades.forEach(function (trade, index) {
+                                            //console.log("Pushing page to allTrades array: #", index);
+                                            allAddressTrades.push(trade);
+                                        });
+                                    }
+                                    pageNum++;
+                                    console.log("page: ", pageNum);
+                                    return [3 /*break*/, 2];
+                                case 4:
+                                    console.log("trade", allAddressTrades);
+                                    //console.log(allAddressTrades);
+                                    allAddressTrades.forEach(function (trade, index) {
+                                        console.log("{".concat(index, ": Outcome ").concat(trade.outcome, ", Betting Outcomeone: ").concat(trade.bettingOutcomeOne));
+                                        //    if((trade.outcome === 2 && trade.bettingOutcomeOne===false) || (trade.outcome === 1 && trade.bettingOutcomeOne===true))   {
+                                        //      profit = profit + (trade.betTimeValue * (decimalOdds-1))  
+                                        //    } else if (trade.outcome === 0){
+                                        //    } else {
+                                        //      profit = profit - trade.betTimeValue;
+                                        //    }
+                                        //    console.log("prfoit: ", profit);
+                                        ///allTrades.push(trade);
+                                    });
+                                    addressStats = {
+                                        address: value,
+                                        test: 'hello'
+                                    };
+                                    tradesByAddress.push(addressStats);
+                                    return [2 /*return*/];
+                            }
                         });
-                    }
-                    return [3 /*break*/, 3];
+                    };
+                    _i = 0, _a = Object.values(jsonAddressFile);
+                    _b.label = 2;
+                case 2:
+                    if (!(_i < _a.length)) return [3 /*break*/, 5];
+                    value = _a[_i];
+                    return [5 /*yield**/, _loop_1(value)];
+                case 3:
+                    _b.sent();
+                    _b.label = 4;
+                case 4:
+                    _i++;
+                    return [3 /*break*/, 2];
                 case 5:
-                    console.log(allTrades);
+                    fs.writeFile('new-test.json', JSON.stringify(tradesByAddress), function (err) {
+                        if (err) {
+                            console.error(err);
+                            return;
+                        }
+                        console.log("Address saved to list");
+                    });
                     allTrades.forEach(function (trade, index) {
                         var decimalOdds = helperFunctions.apiToDecimalOdds(trade.odds);
                         console.log("{".concat(index, ": Outcome ").concat(trade.outcome, ", Betting Outcomeone: ").concat(trade.bettingOutcomeOne));
-                        if ((trade.outcome === 2 && trade.bettingOutcomeOne === false) || (trade.outcome === 1 && trade.bettingOutcomeOne === true)) {
-                            profit = profit + (trade.betTimeValue * (decimalOdds - 1));
-                        }
-                        else if (trade.outcome === 0) {
-                        }
-                        else {
-                            profit = profit - trade.betTimeValue;
-                        }
-                        console.log("prfoit: ", profit);
-                        allTrades.push(trade);
+                        //    if((trade.outcome === 2 && trade.bettingOutcomeOne===false) || (trade.outcome === 1 && trade.bettingOutcomeOne===true))   {
+                        //      profit = profit + (trade.betTimeValue * (decimalOdds-1))  
+                        //    } else if (trade.outcome === 0){
+                        //    } else {
+                        //      profit = profit - trade.betTimeValue;
+                        //    }
+                        //    console.log("prfoit: ", profit);
+                        ///allTrades.push(trade);
                     });
                     return [2 /*return*/];
             }
