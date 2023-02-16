@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc index.ts && node index.js",
+    "copybot": "tsc copybot.ts && node copybot.js",
     "calculatepl": "tsc plcalculator.ts && node plcalculator.js",
     "start-csp-alerts": "tsc csp-alerts.ts && node csp-alerts.js"
   },
