@@ -3,17 +3,20 @@ import * as helperFunctions from './helperFunctions';
 import { Client, TextChannel, GatewayIntentBits } from "discord.js";
 import BigNumber from 'bignumber.js';
 
-import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest, IDetailedRelayerMakerOrder } from "@sx-bet/sportx-js";
+import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest, IDetailedRelayerMakerOrder, convertToTakerPayAmount } from "@sx-bet/sportx-js";
 import * as ably from "ably";
 import { stringify } from 'querystring';
 
+const BET_STAKE = "500000000";
 const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
+const HIDE_BETS_BELOW = 500;
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 
 // Load the nameTags module
 const nameTags = require('./nameTags');
+
 
 // Convert the nameTags hash map to lowercase
 const nameTagsLowerCase = nameTags;
@@ -24,8 +27,6 @@ for (const key in nameTags) {
 }
 
 let discordClient: Client;
-
-const hideBetsBellow = 1;
 
 
 // setup Discord client
@@ -160,18 +161,27 @@ async function main() {
 
 
 
-          if (message.data.tradeStatus === "SUCCESS" &&
-              message.data.status === "SUCCESS" &&
-              message.data.betTimeValue > hideBetsBellow &&
+          if (message.data.tradeStatus === "PENDING" &&
+              message.data.betTimeValue > HIDE_BETS_BELOW &&
               message.data.maker === false &&
-              (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" ||
-              message.data.bettor === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8" ||
-              message.data.bettor === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D" ||
-              message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4"
+              //modify below so the addresses are in arrays and i use .cointain() or something 
+              // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
+              (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" || //
+              message.data.bettor === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8" ||  //
+              message.data.bettor === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D" ||  //
+              message.data.bettor === "0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626" ||  //
+              message.data.bettor === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304" ||  //
+              message.data.bettor === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99" ||  //
+              message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" ||  //
+              message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
+
+              message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634"     //
+              
               )
             ) {
               console.log(message.data);
             
+              //Duplicate this but inreverse so it is betting against the worst bettors
               var isMakerOutcomeOne: boolean;
               if(message.data.bettingOutcomeOne) {
                 isMakerOutcomeOne = false;
@@ -195,7 +205,6 @@ async function main() {
               ]);
               const targetOrders: IDetailedRelayerMakerOrder[] = [];
               orders.forEach(order => {
-                console.log(" order", order)
                // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
                // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
 
@@ -203,11 +212,9 @@ async function main() {
                   parseInt(order.percentageOdds) < parseInt(requiredMakerOddsApi) &&
                   order.isMakerBettingOutcomeOne === isMakerOutcomeOne
                   ){
-                    console.log("adding order", order)
                     targetOrders.push(order);
                 }
               });
-              console.log("Length of that array^:", targetOrders);
               if(targetOrders != undefined && targetOrders != null && targetOrders.length != 0){
 
               var bestPricedHash: string = targetOrders[0].orderHash;
@@ -242,7 +249,8 @@ async function main() {
                   }
                 ];
                 const fillAmounts = [
-                  convertToTrueTokenAmount(5, USDC_BASE_TOKEN)
+                  BET_STAKE
+                  //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
                   
                 ];  
                 try {

@@ -41,7 +41,9 @@ var helperFunctions = require("./helperFunctions");
 var discord_js_1 = require("discord.js");
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
+var BET_STAKE = "500000000";
 var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
+var HIDE_BETS_BELOW = 500;
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 // Load the nameTags module
@@ -54,7 +56,6 @@ for (var key in nameTags) {
     }
 }
 var discordClient;
-var hideBetsBellow = 1;
 // setup Discord client
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
@@ -199,14 +200,21 @@ function main() {
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
-                                                    if (!(message.data.tradeStatus === "SUCCESS" &&
-                                                        message.data.status === "SUCCESS" &&
-                                                        message.data.betTimeValue > hideBetsBellow &&
+                                                    if (!(message.data.tradeStatus === "PENDING" &&
+                                                        message.data.betTimeValue > HIDE_BETS_BELOW &&
                                                         message.data.maker === false &&
-                                                        (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" ||
-                                                            message.data.bettor === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8" ||
-                                                            message.data.bettor === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D" ||
-                                                            message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4"))) return [3 /*break*/, 6];
+                                                        //modify below so the addresses are in arrays and i use .cointain() or something 
+                                                        // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
+                                                        (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" || //
+                                                            message.data.bettor === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8" || //
+                                                            message.data.bettor === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D" || //
+                                                            message.data.bettor === "0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626" || //
+                                                            message.data.bettor === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304" || //
+                                                            message.data.bettor === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99" || //
+                                                            message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" || //
+                                                            message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" || //
+                                                            message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634" //
+                                                        ))) return [3 /*break*/, 6];
                                                     console.log(message.data);
                                                     if (message.data.bettingOutcomeOne) {
                                                         isMakerOutcomeOne = false;
@@ -228,17 +236,14 @@ function main() {
                                                     orders = _a.sent();
                                                     targetOrders_1 = [];
                                                     orders.forEach(function (order) {
-                                                        console.log(" order", order);
                                                         // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
                                                         // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
                                                         if (order.baseToken === USDC_BASE_TOKEN &&
                                                             parseInt(order.percentageOdds) < parseInt(requiredMakerOddsApi_1) &&
                                                             order.isMakerBettingOutcomeOne === isMakerOutcomeOne) {
-                                                            console.log("adding order", order);
                                                             targetOrders_1.push(order);
                                                         }
                                                     });
-                                                    console.log("Length of that array^:", targetOrders_1);
                                                     if (!(targetOrders_1 != undefined && targetOrders_1 != null && targetOrders_1.length != 0)) return [3 /*break*/, 5];
                                                     bestPricedHash = targetOrders_1[0].orderHash;
                                                     priceOfBestHash = parseInt(targetOrders_1[0].percentageOdds);
@@ -267,7 +272,8 @@ function main() {
                                                         }
                                                     ];
                                                     fillAmounts = [
-                                                        (0, sportx_js_1.convertToTrueTokenAmount)(5, USDC_BASE_TOKEN)
+                                                        BET_STAKE
+                                                        //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
                                                     ];
                                                     _a.label = 2;
                                                 case 2:
