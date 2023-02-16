@@ -7,7 +7,7 @@ import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Envi
 import * as ably from "ably";
 import { stringify } from 'querystring';
 
-const BET_STAKE = "500000000";
+const BET_STAKE = "6000000";
 const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
 const HIDE_BETS_BELOW = 500;
 

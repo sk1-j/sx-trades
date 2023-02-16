@@ -41,9 +41,9 @@ var helperFunctions = require("./helperFunctions");
 var discord_js_1 = require("discord.js");
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
-var BET_STAKE = "500000000";
+var BET_STAKE = "6000000";
 var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-var HIDE_BETS_BELOW = 500;
+var HIDE_BETS_BELOW = 1;
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 // Load the nameTags module
