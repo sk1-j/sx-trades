@@ -155,10 +155,10 @@ async function main() {
 
 
 
-          if (message.data.tradeStatus === "SUCCESS" &&
+          if ((message.data.status === "SUCCESS" && message.data.bettor === "0x886e9553f0A770e1874c584fa75D4942e3B2D489") ||(message.data.status === "SUCCESS" && message.data.bettor === "0x1eBeC5952c4439e356bFb04e5c744670D3E67099") || (message.data.tradeStatus === "SUCCESS" &&
               message.data.status === "SUCCESS" &&
               message.data.betTimeValue > hideBetsBellow &&
-              message.data.maker === false
+              message.data.maker === false)
           ) {
 
 
