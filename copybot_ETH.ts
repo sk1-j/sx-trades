@@ -19,7 +19,7 @@ const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
 const WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380";
 const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f";
 
-const HIDE_BETS_BELOW = 100;
+const HIDE_BETS_BELOW = 333;
 const MAX_SLIPPAGE = 0.025;
 const BET_TOKEN: string = "WETH";
 const SELECTED_BASE_TOKEN: string[] = [];
@@ -203,6 +203,8 @@ async function main() {
               message.data.bettor === "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E" ||  //
               message.data.bettor === "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C" ||  //
               message.data.bettor === "0x10981f03BdA67342B272036571ca008fd53aF4Df" ||  //
+            
+              message.data.bettor === "0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF" ||  //
               message.data.bettor === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8" ||  //
               //message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
               message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634"     //
