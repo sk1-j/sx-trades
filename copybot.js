@@ -43,9 +43,10 @@ var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
 //fix stake
 var BET_STAKE = 10000000;
-var STAKE = 8;
+var STAKE = 30;
 var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-var HIDE_BETS_BELOW = 1;
+var HIDE_BETS_BELOW = 100;
+var MAX_SLIPPAGE = 0.025;
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 // Load the nameTags module
@@ -179,7 +180,7 @@ function main() {
                 case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
                         env: sportx_js_1.Environments.SxMainnet,
                         customSidechainProviderUrl: process.env.PROVIDER,
-                        privateKey: process.env.PRIVATE_KEY
+                        privateKey: process.env.PRIVATE_KEY_TWO
                     })];
                 case 1:
                     sportX = _a.sent();
@@ -216,7 +217,13 @@ function main() {
                                                             message.data.bettor === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304" || //
                                                             message.data.bettor === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99" || //
                                                             message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" || //
-                                                            message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" || //
+                                                            message.data.bettor === "0x27fC6CF716345018DE6a1274d71F62F11C09d13A" || //
+                                                            message.data.bettor === "0x437A68B1a1eF215a728842ca22c177d60246019d" || //
+                                                            message.data.bettor === "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E" || //
+                                                            message.data.bettor === "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C" || //
+                                                            message.data.bettor === "0x10981f03BdA67342B272036571ca008fd53aF4Df" || //
+                                                            message.data.bettor === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8" || //
+                                                            //message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
                                                             message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634" //
                                                         ))) return [3 /*break*/, 8];
                                                     previousFillHash = message.data.fillHash;
@@ -230,7 +237,7 @@ function main() {
                                                     }
                                                     convertedOdds = (0, sportx_js_1.convertFromAPIPercentageOdds)(message.data.odds);
                                                     console.log("Converted Odds:", convertedOdds);
-                                                    acceptableOddsTarget = convertedOdds * (1 + 0.04);
+                                                    acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
                                                     console.log("Target Odds (2% below):", acceptableOddsTarget);
                                                     requiredMakerOdds = 1 - acceptableOddsTarget;
                                                     console.log("Required Maker Odds:", requiredMakerOdds);
@@ -285,18 +292,14 @@ function main() {
                                                             apiExpiry: bestOrder.apiExpiry
                                                         }
                                                     ];
-                                                    console.log("here1");
                                                     finalDecimalOdds = 1 / (1 - (0, sportx_js_1.convertFromAPIPercentageOdds)(bestOrder.percentageOdds));
                                                     finalPayout = finalDecimalOdds * STAKE;
                                                     finalProfit = Number((finalPayout - STAKE).toFixed(6));
-                                                    console.log("here3");
                                                     finalFillAmount = (0, sportx_js_1.convertToTrueTokenAmount)(finalProfit, USDC_BASE_TOKEN);
-                                                    console.log("here4");
                                                     fillAmounts = [
                                                         finalFillAmount
                                                         //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
                                                     ];
-                                                    console.log("here5");
                                                     _a.label = 2;
                                                 case 2:
                                                     _a.trys.push([2, 4, , 5]);
@@ -310,9 +313,12 @@ function main() {
                                                 case 4:
                                                     error_1 = _a.sent();
                                                     console.log(JSON.stringify(error_1));
+                                                    // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
+                                                    sendDiscordMessage('913719533007675425', JSON.stringify(error_1));
                                                     return [3 /*break*/, 5];
                                                 case 5: return [3 /*break*/, 7];
                                                 case 6:
+                                                    sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
                                                     console.log("No approroiate orders found");
                                                     _a.label = 7;
                                                 case 7:

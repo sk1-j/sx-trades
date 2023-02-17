@@ -9,9 +9,10 @@ import { stringify } from 'querystring';
 
 //fix stake
 const BET_STAKE = 10000000;
-const STAKE = 8;
+const STAKE = 30;
 const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-const HIDE_BETS_BELOW = 1;
+const HIDE_BETS_BELOW = 100;
+const MAX_SLIPPAGE = 0.025;
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
@@ -40,7 +41,7 @@ const setupDiscordClient = async (token: string | undefined) => {
   discordClient = new Client({
     intents: [GatewayIntentBits.Guilds]
   });
-  
+
   discordClient.on("ready", async () => {
     if (discordClient.user) {
       console.log(`Logged into Discord as ${discordClient.user.tag}!`);
@@ -49,7 +50,7 @@ const setupDiscordClient = async (token: string | undefined) => {
       return;
     }
   });
-  
+
   await discordClient.login(token)
     .then(() => {
       console.log("Login successful.");
@@ -84,7 +85,7 @@ let orderHash: ably.Types.Message;
 
 
 const getMaker = async (marketHash: string, fillHash: string, orderHash: string, sportX: ISportX) => {
-  var mrktHash = [marketHash]; 
+  var mrktHash = [marketHash];
   // GET MAKER HERE
   var tradeRequest: IGetTradesRequest = {
     marketHashes: mrktHash,
@@ -95,7 +96,7 @@ const getMaker = async (marketHash: string, fillHash: string, orderHash: string,
   //Need to look through every page when doing getTrades
   var unsettledTrades = await sportX.getTrades(tradeRequest);
   //console.log("UNSETTLEDTRADES", unsettledTrades);
-  console.log("MSG data:" , unsettledTrades.trades[0]);
+  console.log("MSG data:", unsettledTrades.trades[0]);
   const desiredFillHash = fillHash;
 
   //Find maker here...
@@ -103,30 +104,28 @@ const getMaker = async (marketHash: string, fillHash: string, orderHash: string,
   //console.log("Unsttled trades", unsettledTrades);
   console.log("Desired Hash", desiredFillHash);
 
-console.log("Next Key:", unsettledTrades.nextKey);
-  while(unsettledTrades.nextKey!=undefined)
-
-  {
-   // console.log("Now iterating thru:", unsettledTrades);
+  console.log("Next Key:", unsettledTrades.nextKey);
+  while (unsettledTrades.nextKey != undefined) {
+    // console.log("Now iterating thru:", unsettledTrades);
     console.log("next key:", unsettledTrades.nextKey);
 
     unsettledTrades.trades.forEach((element, index) => {
-      if(element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS"){
+      if (element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS") {
         console.log("found elemnt");
         maker = element.bettor;
-        return(maker);
-      } 
-    });  
+        return (maker);
+      }
+    });
 
     var tradeRequest: IGetTradesRequest = {
       marketHashes: mrktHash,
       maker: true,
       paginationKey: unsettledTrades.nextKey
     };
-    unsettledTrades = await sportX.getTrades(tradeRequest);  
+    unsettledTrades = await sportX.getTrades(tradeRequest);
   }
 
-  return(maker);
+  return (maker);
 }
 
 
@@ -137,9 +136,9 @@ async function main() {
   const sportX = await newSportX({
     env: Environments.SxMainnet,
     customSidechainProviderUrl: process.env.PROVIDER,
-    privateKey: process.env.PRIVATE_KEY,
+    privateKey: process.env.PRIVATE_KEY_TWO,
   });
-  
+
   console.log("Enter Main: ", helperFunctions.printTime());
   // Create a new instance of Ably realtime
   const realtime = new ably.Realtime.Promise({
@@ -154,7 +153,7 @@ async function main() {
 
     realtime.connection.on("connected", () => {
       resolve();
-      if(!logicExecuted) {
+      if (!logicExecuted) {
         // Listen for realtime trades
         const sxChannel = realtime.channels.get(`recent_trades`);
         console.log("Listening for Trades @ ", helperFunctions.printTime());
@@ -163,80 +162,86 @@ async function main() {
         sxChannel.subscribe(async (message) => {
 
           if (message.data.tradeStatus === "SUCCESS" &&
-              message.data.betTimeValue > HIDE_BETS_BELOW &&
-              message.data.maker === false &&
-              message.data.fillHash != previousFillHash &&
+            message.data.betTimeValue > HIDE_BETS_BELOW &&
+            message.data.maker === false &&
+            message.data.fillHash != previousFillHash &&
 
-              //modify below so the addresses are in arrays and i use .cointain() or something 
-              // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
-              (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" || //
+            //modify below so the addresses are in arrays and i use .cointain() or something 
+            // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
+            (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" || //
               message.data.bettor === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8" ||  //
               message.data.bettor === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D" ||  //
               message.data.bettor === "0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626" ||  //
               message.data.bettor === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304" ||  //
               message.data.bettor === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99" ||  //
               message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" ||  //
-              message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
+              message.data.bettor === "0x27fC6CF716345018DE6a1274d71F62F11C09d13A" ||  //
+              message.data.bettor === "0x437A68B1a1eF215a728842ca22c177d60246019d" ||  //
+              message.data.bettor === "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E" ||  //
+              message.data.bettor === "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C" ||  //
+              message.data.bettor === "0x10981f03BdA67342B272036571ca008fd53aF4Df" ||  //
+              message.data.bettor === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8" ||  //
+              //message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
               message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634"     //
-              
-              )
-            ) {
-              previousFillHash = message.data.fillHash;
-              console.log("Previous fillHash:", previousFillHash);
+
+            )
+          ) {
+            previousFillHash = message.data.fillHash;
+            console.log("Previous fillHash:", previousFillHash);
 
 
-              console.log(message.data);
-            
-              //Duplicate this but inreverse so it is betting against the worst bettors
+            console.log(message.data);
 
-              var isMakerOutcomeOne: boolean;
-              if(message.data.bettingOutcomeOne) {
-                isMakerOutcomeOne = false;
-              } else {
-                isMakerOutcomeOne = true;
+            //Duplicate this but inreverse so it is betting against the worst bettors
+
+            var isMakerOutcomeOne: boolean;
+            if (message.data.bettingOutcomeOne) {
+              isMakerOutcomeOne = false;
+            } else {
+              isMakerOutcomeOne = true;
+            }
+
+            // Original odds taken in trade
+
+            const convertedOdds = convertFromAPIPercentageOdds(message.data.odds);
+            console.log("Converted Odds:", convertedOdds);
+            const acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
+            console.log("Target Odds (2% below):", acceptableOddsTarget);
+            const requiredMakerOdds = 1 - acceptableOddsTarget;
+            console.log("Required Maker Odds:", requiredMakerOdds);
+            const requiredMakerOddsApi = convertToAPIPercentageOdds(requiredMakerOdds).toString();
+
+            const orders = await sportX.getOrders([
+              message.data.marketHash,
+            ]);
+            const targetOrders: IDetailedRelayerMakerOrder[] = [];
+            orders.forEach(order => {
+              // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
+              // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
+              console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
+              if (order.baseToken === USDC_BASE_TOKEN &&
+                parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
+                order.isMakerBettingOutcomeOne === isMakerOutcomeOne
+              ) {
+                targetOrders.push(order);
+                console.log("Yes, added to array");
               }
-              
-              // Original odds taken in trade
-            
-              const convertedOdds = convertFromAPIPercentageOdds(message.data.odds);
-              console.log("Converted Odds:", convertedOdds);
-              const acceptableOddsTarget = convertedOdds * (1+0.04);
-              console.log("Target Odds (2% below):", acceptableOddsTarget);
-              const requiredMakerOdds = 1 - acceptableOddsTarget;
-              console.log("Required Maker Odds:", requiredMakerOdds);
-              const requiredMakerOddsApi = convertToAPIPercentageOdds(requiredMakerOdds).toString();
-
-              const orders = await sportX.getOrders([
-               message.data.marketHash,
-              ]);
-              const targetOrders: IDetailedRelayerMakerOrder[] = [];
-              orders.forEach(order => {
-               // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
-               // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
-                console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
-                if(order.baseToken === USDC_BASE_TOKEN &&
-                  parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
-                  order.isMakerBettingOutcomeOne === isMakerOutcomeOne
-                  ){
-                    targetOrders.push(order);
-                    console.log("Yes, added to array");
-                }
-              });
-              if(targetOrders != undefined && targetOrders != null && targetOrders.length != 0){
+            });
+            if (targetOrders != undefined && targetOrders != null && targetOrders.length != 0) {
 
               var bestPricedHash: string = targetOrders[0].orderHash;
               //console.log("Best Priced Hash", bestPricedHash)
               var priceOfBestHash: number = parseInt(targetOrders[0].percentageOdds);
               //console.log("Price of Best Hash", priceOfBestHash)
-              
+
               var bestOrder = targetOrders[0];
-              
-              
+
+
               //Find which order is priced best
               targetOrders.forEach(order => {
                 console.log(`Is ${parseInt(order.percentageOdds)}! < ${priceOfBestHash}?`);
 
-                if(parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6"){
+                if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
                   bestPricedHash = order.orderHash;
                   priceOfBestHash = parseInt(order.percentageOdds);
                   bestOrder = order;
@@ -245,7 +250,7 @@ async function main() {
                 }
                 console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays)`);
               });
-              if(bestOrder != undefined && bestOrder != null){
+              if (bestOrder != undefined && bestOrder != null) {
                 const finalOrder = [
                   {
                     executor: bestOrder.executor,
@@ -261,26 +266,21 @@ async function main() {
                     apiExpiry: bestOrder.apiExpiry
                   }
                 ];
-                console.log("here1");
 
-                const finalDecimalOdds = 1/(1-convertFromAPIPercentageOdds(bestOrder.percentageOdds));
+                //Figure out how much to enter in the function to ensure right bet  size
+                const finalDecimalOdds = 1 / (1 - convertFromAPIPercentageOdds(bestOrder.percentageOdds));
                 const finalPayout = finalDecimalOdds * STAKE;
                 const finalProfit = Number((finalPayout - STAKE).toFixed(6));
 
 
-                console.log("here3");
-                const finalFillAmount = convertToTrueTokenAmount(finalProfit,USDC_BASE_TOKEN);
-                console.log("here4");
+                const finalFillAmount = convertToTrueTokenAmount(finalProfit, USDC_BASE_TOKEN);
 
-                
-              
 
                 const fillAmounts = [
                   finalFillAmount
                   //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
-                  
-                ];  
-                console.log("here5");
+
+                ];
 
                 try {
                   const result = await sportX.fillOrders(finalOrder, fillAmounts);
@@ -290,21 +290,21 @@ async function main() {
 
                 } catch (error) {
                   console.log(JSON.stringify(error));
-                 // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
-                 // sendDiscordMessage('913719533007675425', JSON.stringify(error));
-
-
-                }          
+                  // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
+                  sendDiscordMessage('913719533007675425', JSON.stringify(error));
+                }
 
 
               }
             }
             else {
+              sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
+
               console.log("No approroiate orders found");
             }
             console.log("finish loop, listening for next noob to snipe");
-              //console.log("Best Priced Hash", bestPricedHash)
-              //console.log("Price of Best Hash", priceOfBestHash)
+            //console.log("Best Priced Hash", bestPricedHash)
+            //console.log("Price of Best Hash", priceOfBestHash)
 
           }
         });
