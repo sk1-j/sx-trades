@@ -3,14 +3,15 @@ import * as helperFunctions from './helperFunctions';
 import { Client, TextChannel, GatewayIntentBits } from "discord.js";
 import BigNumber from 'bignumber.js';
 
-import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest, IDetailedRelayerMakerOrder, convertToTakerPayAmount } from "@sx-bet/sportx-js";
+import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest, IDetailedRelayerMakerOrder, convertToTakerPayAmount, convertToDisplayAmount } from "@sx-bet/sportx-js";
 import * as ably from "ably";
 import { stringify } from 'querystring';
 
 //fix stake
-const BET_STAKE = "10000000";
+const BET_STAKE = 10000000;
+const STAKE = 8;
 const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-const HIDE_BETS_BELOW = 500;
+const HIDE_BETS_BELOW = 1;
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
@@ -158,10 +159,8 @@ async function main() {
         const sxChannel = realtime.channels.get(`recent_trades`);
         console.log("Listening for Trades @ ", helperFunctions.printTime());
         var previousFillHash = "";
-        console.log("Previos fill hash", previousFillHash)
 
         sxChannel.subscribe(async (message) => {
-          console.log("Previos fill hash", message.data.fillHash)
 
           if (message.data.tradeStatus === "SUCCESS" &&
               message.data.betTimeValue > HIDE_BETS_BELOW &&
@@ -177,11 +176,15 @@ async function main() {
               message.data.bettor === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304" ||  //
               message.data.bettor === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99" ||  //
               message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" ||  //
-              //message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
+              message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
               message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634"     //
               
               )
             ) {
+              previousFillHash = message.data.fillHash;
+              console.log("Previous fillHash:", previousFillHash);
+
+
               console.log(message.data);
             
               //Duplicate this but inreverse so it is betting against the worst bettors
@@ -197,7 +200,7 @@ async function main() {
             
               const convertedOdds = convertFromAPIPercentageOdds(message.data.odds);
               console.log("Converted Odds:", convertedOdds);
-              const acceptableOddsTarget = convertedOdds * (1+0.02);
+              const acceptableOddsTarget = convertedOdds * (1+0.04);
               console.log("Target Odds (2% below):", acceptableOddsTarget);
               const requiredMakerOdds = 1 - acceptableOddsTarget;
               console.log("Required Maker Odds:", requiredMakerOdds);
@@ -258,11 +261,27 @@ async function main() {
                     apiExpiry: bestOrder.apiExpiry
                   }
                 ];
+                console.log("here1");
+
+                const finalDecimalOdds = 1/(1-convertFromAPIPercentageOdds(bestOrder.percentageOdds));
+                const finalPayout = finalDecimalOdds * STAKE;
+                const finalProfit = Number((finalPayout - STAKE).toFixed(6));
+
+
+                console.log("here3");
+                const finalFillAmount = convertToTrueTokenAmount(finalProfit,USDC_BASE_TOKEN);
+                console.log("here4");
+
+                
+              
+
                 const fillAmounts = [
-                  BET_STAKE
+                  finalFillAmount
                   //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
                   
                 ];  
+                console.log("here5");
+
                 try {
                   const result = await sportX.fillOrders(finalOrder, fillAmounts);
                   sendDiscordMessage('913719533007675425', "CopyBot Filled an Order");
@@ -270,11 +289,13 @@ async function main() {
                   console.log(result)
 
                 } catch (error) {
-                  sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
-                  sendDiscordMessage('913719533007675425', JSON.stringify(error));
+                  console.log(JSON.stringify(error));
+                 // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
+                 // sendDiscordMessage('913719533007675425', JSON.stringify(error));
 
 
                 }          
+
 
               }
             }
@@ -284,7 +305,6 @@ async function main() {
             console.log("finish loop, listening for next noob to snipe");
               //console.log("Best Priced Hash", bestPricedHash)
               //console.log("Price of Best Hash", priceOfBestHash)
-              previousFillHash = message.data.fillHash;
 
           }
         });
