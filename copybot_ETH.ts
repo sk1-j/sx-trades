@@ -155,7 +155,7 @@ async function main() {
   const sportX = await newSportX({
     env: Environments.SxMainnet,
     customSidechainProviderUrl: process.env.PROVIDER,
-    privateKey: process.env.PRIVATE_KEY_TWO,
+    privateKey: process.env.PRIVATE_KEY_ETH,
   });
 
   console.log("Enter Main: ", helperFunctions.printTime());
