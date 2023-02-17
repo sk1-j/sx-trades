@@ -52,18 +52,20 @@ var WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f";
 var HIDE_BETS_BELOW = 100;
 var MAX_SLIPPAGE = 0.025;
 var BET_TOKEN = "WETH";
-var SELECTED_BASE_TOKEN;
+var SELECTED_BASE_TOKEN = [];
 if (BET_TOKEN === "WETH") {
-    SELECTED_BASE_TOKEN = WETH_BASE_TOKEN;
-    STAKE = WETH_STAKE;
+    SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN);
 }
 else if (BET_TOKEN === "USDC") {
-    SELECTED_BASE_TOKEN = USDC_BASE_TOKEN;
-    STAKE = USDC_STAKE;
+    SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN);
+}
+else if (BET_TOKEN === "WSX") {
+    SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN);
 }
 else {
-    SELECTED_BASE_TOKEN = WSX_BASE_TOKEN;
-    STAKE = WSX_STAKE;
+    SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
+    SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
+    SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
 }
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
@@ -270,7 +272,7 @@ function main() {
                                                         // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
                                                         // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
                                                         console.log("Is order odds, ".concat(order.percentageOdds, ", better than required ").concat(parseInt(requiredMakerOddsApi_1), " "));
-                                                        if (order.baseToken === SELECTED_BASE_TOKEN &&
+                                                        if (SELECTED_BASE_TOKEN.includes(order.baseToken) &&
                                                             parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi_1) &&
                                                             order.isMakerBettingOutcomeOne === isMakerOutcomeOne) {
                                                             targetOrders_1.push(order);
@@ -310,10 +312,19 @@ function main() {
                                                             apiExpiry: bestOrder.apiExpiry
                                                         }
                                                     ];
+                                                    if (bestOrder.baseToken === WETH_BASE_TOKEN) {
+                                                        STAKE = WETH_STAKE;
+                                                    }
+                                                    else if (bestOrder.baseToken === USDC_BASE_TOKEN) {
+                                                        STAKE = USDC_STAKE;
+                                                    }
+                                                    else {
+                                                        STAKE = WSX_STAKE;
+                                                    }
                                                     finalDecimalOdds = 1 / (1 - (0, sportx_js_1.convertFromAPIPercentageOdds)(bestOrder.percentageOdds));
                                                     finalPayout = finalDecimalOdds * STAKE;
                                                     finalProfit = Number((finalPayout - STAKE).toFixed(6));
-                                                    finalFillAmount = (0, sportx_js_1.convertToTrueTokenAmount)(finalProfit, SELECTED_BASE_TOKEN);
+                                                    finalFillAmount = (0, sportx_js_1.convertToTrueTokenAmount)(finalProfit, bestOrder.baseToken);
                                                     fillAmounts = [
                                                         finalFillAmount
                                                         //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)

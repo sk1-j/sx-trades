@@ -6,6 +6,7 @@ import BigNumber from 'bignumber.js';
 import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest, IDetailedRelayerMakerOrder, convertToTakerPayAmount, convertToDisplayAmount } from "@sx-bet/sportx-js";
 import * as ably from "ably";
 import { stringify } from 'querystring';
+import { constants } from 'fs/promises';
 
 //fix stake
 let STAKE: number;
@@ -21,16 +22,19 @@ const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f";
 const HIDE_BETS_BELOW = 100;
 const MAX_SLIPPAGE = 0.025;
 const BET_TOKEN: string = "WETH";
-let SELECTED_BASE_TOKEN: string;
+const SELECTED_BASE_TOKEN: string[] = [];
+
 if(BET_TOKEN==="WETH"){
-  SELECTED_BASE_TOKEN = WETH_BASE_TOKEN;
-  STAKE = WETH_STAKE;
+  SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN);
 }else if(BET_TOKEN==="USDC"){
-  SELECTED_BASE_TOKEN=USDC_BASE_TOKEN
-  STAKE=USDC_STAKE;
-}else{
-  SELECTED_BASE_TOKEN=WSX_BASE_TOKEN
-  STAKE = WSX_STAKE;
+  SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN);  
+}else if (BET_TOKEN==="WSX"){
+  SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN);
+} else {
+  SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN,USDC_BASE_TOKEN,WSX_BASE_TOKEN);
+  SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN,USDC_BASE_TOKEN,WSX_BASE_TOKEN);
+  SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN,USDC_BASE_TOKEN,WSX_BASE_TOKEN);
+
 }
 
 // Load the environment variables from .env file
@@ -238,7 +242,7 @@ async function main() {
               // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
               // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
               console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
-              if (order.baseToken === SELECTED_BASE_TOKEN &&
+              if (SELECTED_BASE_TOKEN.includes(order.baseToken) &&
                 parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
                 order.isMakerBettingOutcomeOne === isMakerOutcomeOne
               ) {
@@ -286,13 +290,21 @@ async function main() {
                   }
                 ];
 
+                if(bestOrder.baseToken===WETH_BASE_TOKEN){
+                  STAKE = WETH_STAKE;
+                } else if (bestOrder.baseToken===USDC_BASE_TOKEN){
+                  STAKE = USDC_STAKE;
+                } else {
+                  STAKE = WSX_STAKE;
+                }
+
                 //Figure out how much to enter in the function to ensure right bet  size
                 const finalDecimalOdds = 1 / (1 - convertFromAPIPercentageOdds(bestOrder.percentageOdds));
                 const finalPayout = finalDecimalOdds * STAKE;
                 const finalProfit = Number((finalPayout - STAKE).toFixed(6));
 
 
-                const finalFillAmount = convertToTrueTokenAmount(finalProfit, SELECTED_BASE_TOKEN);
+                const finalFillAmount = convertToTrueTokenAmount(finalProfit, bestOrder.baseToken);
 
 
                 const fillAmounts = [
