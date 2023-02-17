@@ -198,7 +198,7 @@ function main() {
                 case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
                         env: sportx_js_1.Environments.SxMainnet,
                         customSidechainProviderUrl: process.env.PROVIDER,
-                        privateKey: process.env.PRIVATE_KEY_TWO
+                        privateKey: process.env.PRIVATE_KEY_ETH
                     })];
                 case 1:
                     sportX = _a.sent();
