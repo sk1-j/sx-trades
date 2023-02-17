@@ -8,9 +8,9 @@ import * as ably from "ably";
 import { stringify } from 'querystring';
 
 //fix stake
-const BET_STAKE = "6000000";
+const BET_STAKE = "10000000";
 const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-const HIDE_BETS_BELOW = 1;
+const HIDE_BETS_BELOW = 500;
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
@@ -177,7 +177,7 @@ async function main() {
               message.data.bettor === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304" ||  //
               message.data.bettor === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99" ||  //
               message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" ||  //
-              message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
+              //message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
               message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634"     //
               
               )
