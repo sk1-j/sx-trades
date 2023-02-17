@@ -41,6 +41,7 @@ var helperFunctions = require("./helperFunctions");
 var discord_js_1 = require("discord.js");
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
+//fix stake
 var BET_STAKE = "6000000";
 var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
 var HIDE_BETS_BELOW = 1;
@@ -195,14 +196,18 @@ function main() {
                                     // Listen for realtime trades
                                     var sxChannel = realtime.channels.get("recent_trades");
                                     console.log("Listening for Trades @ ", helperFunctions.printTime());
+                                    var previousFillHash = "";
+                                    console.log("Previos fill hash", previousFillHash);
                                     sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
                                         var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi_1, orders, targetOrders_1, bestPricedHash, priceOfBestHash, bestOrder, finalOrder, fillAmounts, result, error_1;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
-                                                    if (!(message.data.tradeStatus === "PENDING" &&
+                                                    console.log("Previos fill hash", message.data.fillHash);
+                                                    if (!(message.data.tradeStatus === "SUCCESS" &&
                                                         message.data.betTimeValue > HIDE_BETS_BELOW &&
                                                         message.data.maker === false &&
+                                                        message.data.fillHash != previousFillHash &&
                                                         //modify below so the addresses are in arrays and i use .cointain() or something 
                                                         // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
                                                         (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" || //
@@ -214,7 +219,7 @@ function main() {
                                                             message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" || //
                                                             message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" || //
                                                             message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634" //
-                                                        ))) return [3 /*break*/, 6];
+                                                        ))) return [3 /*break*/, 8];
                                                     console.log(message.data);
                                                     if (message.data.bettingOutcomeOne) {
                                                         isMakerOutcomeOne = false;
@@ -224,7 +229,7 @@ function main() {
                                                     }
                                                     convertedOdds = (0, sportx_js_1.convertFromAPIPercentageOdds)(message.data.odds);
                                                     console.log("Converted Odds:", convertedOdds);
-                                                    acceptableOddsTarget = convertedOdds * (1 - 0.02);
+                                                    acceptableOddsTarget = convertedOdds * (1 + 0.02);
                                                     console.log("Target Odds (2% below):", acceptableOddsTarget);
                                                     requiredMakerOdds = 1 - acceptableOddsTarget;
                                                     console.log("Required Maker Odds:", requiredMakerOdds);
@@ -238,22 +243,27 @@ function main() {
                                                     orders.forEach(function (order) {
                                                         // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
                                                         // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
+                                                        console.log("Is order odds, ".concat(order.percentageOdds, ", better than required ").concat(parseInt(requiredMakerOddsApi_1), " "));
                                                         if (order.baseToken === USDC_BASE_TOKEN &&
-                                                            parseInt(order.percentageOdds) < parseInt(requiredMakerOddsApi_1) &&
+                                                            parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi_1) &&
                                                             order.isMakerBettingOutcomeOne === isMakerOutcomeOne) {
                                                             targetOrders_1.push(order);
+                                                            console.log("Yes, added to array");
                                                         }
                                                     });
-                                                    if (!(targetOrders_1 != undefined && targetOrders_1 != null && targetOrders_1.length != 0)) return [3 /*break*/, 5];
+                                                    if (!(targetOrders_1 != undefined && targetOrders_1 != null && targetOrders_1.length != 0)) return [3 /*break*/, 6];
                                                     bestPricedHash = targetOrders_1[0].orderHash;
                                                     priceOfBestHash = parseInt(targetOrders_1[0].percentageOdds);
                                                     bestOrder = targetOrders_1[0];
+                                                    //Find which order is priced best
                                                     targetOrders_1.forEach(function (order) {
-                                                        if (parseInt(order.percentageOdds) < priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
+                                                        console.log("Is ".concat(parseInt(order.percentageOdds), "! < ").concat(priceOfBestHash, "?"));
+                                                        if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
                                                             bestPricedHash = order.orderHash;
                                                             priceOfBestHash = parseInt(order.percentageOdds);
                                                             bestOrder = order;
                                                         }
+                                                        console.log("Price of bestHash is now ".concat(priceOfBestHash, " (hgiher is better as this is the price the mm pays)"));
                                                     });
                                                     if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 5];
                                                     finalOrder = [
@@ -290,10 +300,17 @@ function main() {
                                                     sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
                                                     sendDiscordMessage('913719533007675425', JSON.stringify(error_1));
                                                     return [3 /*break*/, 5];
-                                                case 5:
+                                                case 5: return [3 /*break*/, 7];
+                                                case 6:
+                                                    console.log("No approroiate orders found");
+                                                    _a.label = 7;
+                                                case 7:
                                                     console.log("finish loop, listening for next noob to snipe");
-                                                    _a.label = 6;
-                                                case 6: return [2 /*return*/];
+                                                    //console.log("Best Priced Hash", bestPricedHash)
+                                                    //console.log("Price of Best Hash", priceOfBestHash)
+                                                    previousFillHash = message.data.fillHash;
+                                                    _a.label = 8;
+                                                case 8: return [2 /*return*/];
                                             }
                                         });
                                     }); });

@@ -10,7 +10,7 @@ import { stringify } from 'querystring';
 //fix stake
 const BET_STAKE = "6000000";
 const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-const HIDE_BETS_BELOW = 500;
+const HIDE_BETS_BELOW = 1;
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
@@ -157,14 +157,17 @@ async function main() {
         // Listen for realtime trades
         const sxChannel = realtime.channels.get(`recent_trades`);
         console.log("Listening for Trades @ ", helperFunctions.printTime());
+        var previousFillHash = "";
+        console.log("Previos fill hash", previousFillHash)
+
         sxChannel.subscribe(async (message) => {
-          //console.log("MESSAGE", message);
+          console.log("Previos fill hash", message.data.fillHash)
 
-
-
-          if (message.data.tradeStatus === "PENDING" &&
+          if (message.data.tradeStatus === "SUCCESS" &&
               message.data.betTimeValue > HIDE_BETS_BELOW &&
               message.data.maker === false &&
+              message.data.fillHash != previousFillHash &&
+
               //modify below so the addresses are in arrays and i use .cointain() or something 
               // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
               (message.data.bettor === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454" || //
@@ -175,7 +178,6 @@ async function main() {
               message.data.bettor === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99" ||  //
               message.data.bettor === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988" ||  //
               message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
-
               message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634"     //
               
               )
@@ -183,6 +185,7 @@ async function main() {
               console.log(message.data);
             
               //Duplicate this but inreverse so it is betting against the worst bettors
+
               var isMakerOutcomeOne: boolean;
               if(message.data.bettingOutcomeOne) {
                 isMakerOutcomeOne = false;
@@ -190,12 +193,11 @@ async function main() {
                 isMakerOutcomeOne = true;
               }
               
-              
-
+              // Original odds taken in trade
+            
               const convertedOdds = convertFromAPIPercentageOdds(message.data.odds);
-
               console.log("Converted Odds:", convertedOdds);
-              const acceptableOddsTarget = convertedOdds * (1-0.02);
+              const acceptableOddsTarget = convertedOdds * (1+0.02);
               console.log("Target Odds (2% below):", acceptableOddsTarget);
               const requiredMakerOdds = 1 - acceptableOddsTarget;
               console.log("Required Maker Odds:", requiredMakerOdds);
@@ -208,12 +210,13 @@ async function main() {
               orders.forEach(order => {
                // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
                // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
-
+                console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
                 if(order.baseToken === USDC_BASE_TOKEN &&
-                  parseInt(order.percentageOdds) < parseInt(requiredMakerOddsApi) &&
+                  parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
                   order.isMakerBettingOutcomeOne === isMakerOutcomeOne
                   ){
                     targetOrders.push(order);
+                    console.log("Yes, added to array");
                 }
               });
               if(targetOrders != undefined && targetOrders != null && targetOrders.length != 0){
@@ -225,13 +228,19 @@ async function main() {
               
               var bestOrder = targetOrders[0];
               
-
+              
+              //Find which order is priced best
               targetOrders.forEach(order => {
-                if(parseInt(order.percentageOdds) < priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6"){
+                console.log(`Is ${parseInt(order.percentageOdds)}! < ${priceOfBestHash}?`);
+
+                if(parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6"){
                   bestPricedHash = order.orderHash;
                   priceOfBestHash = parseInt(order.percentageOdds);
                   bestOrder = order;
+                } else {
+                  console.log("no");
                 }
+                console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays)`);
               });
               if(bestOrder != undefined && bestOrder != null){
                 const finalOrder = [
@@ -269,9 +278,13 @@ async function main() {
 
               }
             }
+            else {
+              console.log("No approroiate orders found");
+            }
             console.log("finish loop, listening for next noob to snipe");
               //console.log("Best Priced Hash", bestPricedHash)
               //console.log("Price of Best Hash", priceOfBestHash)
+              previousFillHash = message.data.fillHash;
 
           }
         });
