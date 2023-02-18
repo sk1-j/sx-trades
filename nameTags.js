@@ -4,7 +4,6 @@
 const hashValues = {
   '0x886e9553f0A770e1874c584fa75D4942e3B2D489': 'CopyBotUSDC',
   '0x1eBeC5952c4439e356bFb04e5c744670D3E67099': 'CopyBot2',
-
   '0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF': 'CSP',
   '0xf4abd17ad05656697f615e35e9c0c84fd1e0cb1f' : 'Julian?',
   '0x898f5ab5674f8d168c30d5b9a8314b541c610251' : 'Eric',
@@ -80,7 +79,7 @@ const hashValues = {
   '0x646b03dabaa9cfe9aa6340f98394b4e4f9b6746a' : 'CashForGrabs',
   '0x5c176f495defe79dcb3a33e526f43669f6b3c66b' : 'Humps35',
   '0x3e10bcaa24a15b7a6848361a59f45ed31de166bd' : 'Jake?* Personal Wallet?*',
-  '0x97f3a94b2cd2484e46bc36ea668823f60b6cf137' : 'Jake?* Betting Wallet',
+  '0x97f3a94b2cd2484e46bc36ea668823f60b6cf137' : 'SX MM Team',
   '0xd205c7c9b7caee0c61f0fc8d36378b21f5f041a6' : 'doncic',
   '0x2adc112d4b138b6ba5419b4240e79aa885e82a4e' : 'QuickPlaya',
   '0xc1ec1513ef9aa5dd9e924a0fd5f04c9b79a5053c' : 'Avenger',
@@ -129,6 +128,9 @@ const hashValues = {
   '0xD95087C04951117a344edbD34A944C41aFC6D10a' : 'Jmac',
   '0xfb49B3d447Ff5E839E089e62171fCf698D952F07' : 'JacobJohn420',  
   '0x449472f3d7e02109b0c616b56650fef42a12d634' : 'spi',
+  '0x03ca200aE989124Cc3452285b8A6a946c5346939' : 'FaayBaay',
+
+  
 
 };
 module.exports = hashValues;
