@@ -10,18 +10,18 @@ import { constants } from 'fs/promises';
 
 //fix stake
 let STAKE: number;
-const USDC_STAKE = 30;
-const WETH_STAKE = 0.02;
-const WSX_STAKE = 300;
+const USDC_STAKE = 25;
+const WETH_STAKE = 0.015;
+const WSX_STAKE = 250;
 
 
-const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-const WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380";
-const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f";
+const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
+const WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
+const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
 
-const HIDE_BETS_BELOW = 333;
+const HIDE_BETS_BELOW = 200;
 const MAX_SLIPPAGE = 0.025;
-const BET_TOKEN: string = "WETH";
+const BET_TOKEN: string = "any";
 const SELECTED_BASE_TOKEN: string[] = [];
 
 if(BET_TOKEN==="WETH"){
@@ -32,10 +32,11 @@ if(BET_TOKEN==="WETH"){
   SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN);
 } else {
   SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN,USDC_BASE_TOKEN,WSX_BASE_TOKEN);
-  SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN,USDC_BASE_TOKEN,WSX_BASE_TOKEN);
-  SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN,USDC_BASE_TOKEN,WSX_BASE_TOKEN);
+
 
 }
+
+console.log("Selected base tokens:", SELECTED_BASE_TOKEN);
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
@@ -206,7 +207,7 @@ async function main() {
             
               message.data.bettor === "0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF" ||  //
               message.data.bettor === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8" ||  //
-              //message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
+              message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
               message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634"     //
 
             )
@@ -243,8 +244,17 @@ async function main() {
             orders.forEach(order => {
               // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
               // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
+             
               console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
-              if (SELECTED_BASE_TOKEN.includes(order.baseToken) &&
+              console.log(`Order base tokden ${order.baseToken} \n Selected base tokens ${SELECTED_BASE_TOKEN}`);
+              if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())){
+                console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? YES`)
+              } else {
+                console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? NO`)
+
+              }
+
+              if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
                 parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
                 order.isMakerBettingOutcomeOne === isMakerOutcomeOne
               ) {
@@ -273,7 +283,7 @@ async function main() {
                 } else {
                   console.log("no");
                 }
-                console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays)`);
+                console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays). \nBase token is${bestOrder.baseToken}`);
               });
               if (bestOrder != undefined && bestOrder != null) {
                 const finalOrder = [
@@ -292,9 +302,9 @@ async function main() {
                   }
                 ];
 
-                if(bestOrder.baseToken===WETH_BASE_TOKEN){
+                if(bestOrder.baseToken.toLowerCase()===WETH_BASE_TOKEN){
                   STAKE = WETH_STAKE;
-                } else if (bestOrder.baseToken===USDC_BASE_TOKEN){
+                } else if (bestOrder.baseToken.toLowerCase()===USDC_BASE_TOKEN){
                   STAKE = USDC_STAKE;
                 } else {
                   STAKE = WSX_STAKE;

@@ -43,15 +43,15 @@ var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
 //fix stake
 var STAKE;
-var USDC_STAKE = 30;
-var WETH_STAKE = 0.02;
-var WSX_STAKE = 300;
-var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e";
-var WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380";
-var WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f";
-var HIDE_BETS_BELOW = 333;
+var USDC_STAKE = 25;
+var WETH_STAKE = 0.015;
+var WSX_STAKE = 250;
+var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
+var WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
+var WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
+var HIDE_BETS_BELOW = 200;
 var MAX_SLIPPAGE = 0.025;
-var BET_TOKEN = "WETH";
+var BET_TOKEN = "any";
 var SELECTED_BASE_TOKEN = [];
 if (BET_TOKEN === "WETH") {
     SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN);
@@ -64,9 +64,8 @@ else if (BET_TOKEN === "WSX") {
 }
 else {
     SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
-    SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
-    SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
 }
+console.log("Selected base tokens:", SELECTED_BASE_TOKEN);
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 // Load the nameTags module
@@ -244,7 +243,7 @@ function main() {
                                                             message.data.bettor === "0x10981f03BdA67342B272036571ca008fd53aF4Df" || //
                                                             message.data.bettor === "0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF" || //
                                                             message.data.bettor === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8" || //
-                                                            //message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" ||  //
+                                                            message.data.bettor === "0x631B34CF9f08615a8653B2438A881FE38211DAb4" || //
                                                             message.data.bettor === "0x449472f3d7e02109b0c616b56650fef42a12d634" //
                                                         ))) return [3 /*break*/, 8];
                                                     previousFillHash = message.data.fillHash;
@@ -273,7 +272,14 @@ function main() {
                                                         // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
                                                         // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
                                                         console.log("Is order odds, ".concat(order.percentageOdds, ", better than required ").concat(parseInt(requiredMakerOddsApi_1), " "));
-                                                        if (SELECTED_BASE_TOKEN.includes(order.baseToken) &&
+                                                        console.log("Order base tokden ".concat(order.baseToken, " \n Selected base tokens ").concat(SELECTED_BASE_TOKEN));
+                                                        if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
+                                                            console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? YES"));
+                                                        }
+                                                        else {
+                                                            console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? NO"));
+                                                        }
+                                                        if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
                                                             parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi_1) &&
                                                             order.isMakerBettingOutcomeOne === isMakerOutcomeOne) {
                                                             targetOrders_1.push(order);
@@ -295,7 +301,7 @@ function main() {
                                                         else {
                                                             console.log("no");
                                                         }
-                                                        console.log("Price of bestHash is now ".concat(priceOfBestHash, " (hgiher is better as this is the price the mm pays)"));
+                                                        console.log("Price of bestHash is now ".concat(priceOfBestHash, " (hgiher is better as this is the price the mm pays). \nBase token is").concat(bestOrder.baseToken));
                                                     });
                                                     if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 5];
                                                     finalOrder = [
@@ -313,10 +319,10 @@ function main() {
                                                             apiExpiry: bestOrder.apiExpiry
                                                         }
                                                     ];
-                                                    if (bestOrder.baseToken === WETH_BASE_TOKEN) {
+                                                    if (bestOrder.baseToken.toLowerCase() === WETH_BASE_TOKEN) {
                                                         STAKE = WETH_STAKE;
                                                     }
-                                                    else if (bestOrder.baseToken === USDC_BASE_TOKEN) {
+                                                    else if (bestOrder.baseToken.toLowerCase() === USDC_BASE_TOKEN) {
                                                         STAKE = USDC_STAKE;
                                                     }
                                                     else {
