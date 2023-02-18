@@ -234,7 +234,7 @@ async function main() {
             } else {
               usernameMaker = "";
             }
-              if(dollarStake > 499 || usernameMaker === '<@281233046227779585>' || usernameMaker ===  '<@418940152778457099>'){
+              if(dollarStake > 499 || usernameMaker === '<@281233046227779585>' || usernameMaker ===  '<@418940152778457099>' || username ==='CopyBot2'){
                 discordMessage = helperFunctions.compileDiscordMessage(event, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker, sport, league, username, usernameMaker);
                 //Print discord message to console
                 console.log(discordMessage);
