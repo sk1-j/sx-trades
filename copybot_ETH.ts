@@ -21,7 +21,7 @@ const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase(
 
 const HIDE_BETS_BELOW = 1;
 const MAX_SLIPPAGE = 0.025;
-const BET_TOKEN:string = "any";
+const BET_TOKEN: string = "any";
 const SELECTED_BASE_TOKEN: string[] = [];
 
 if (BET_TOKEN === "WETH") {
@@ -44,82 +44,33 @@ const nameTagsLowerCase = Object.fromEntries(
   Object.entries(nameTags).map(([k, v]) => [k.toLowerCase(), v])
 );
 
-let discordClient: Client;
 
-// setup Discord client
-const setupDiscordClient = async (token: string | undefined) => {
-  // check if token is provided
-  if (!token) {
-    console.error("Discord token is not provided.");
-    return;
-  }
-
-  // create a new Discord client with Guilds intent
-  discordClient = new Client({
-    intents: [GatewayIntentBits.Guilds]
-  });
-
-  // handle "ready" event when the client is logged in
-  discordClient.on("ready", async () => {
-    if (discordClient.user) {
-      console.log(`Logged into Discord as ${discordClient.user.tag}!`);
-    } else {
-      console.error("Failed to get user information.");
-      return;
-    }
-  });
-
-  // log in to Discord with the provided token
-  await discordClient.login(token)
-    .then(() => {
-      console.log("Login successful.");
-    })
-    .catch((error) => {
-      console.error("Failed to log in:");
-      console.error(error);
-    });
-};
-
-
-// send a message to a specified Discord channel
-const sendDiscordMessage = async (channelId: string, message: string) => {
-  // get the Discord channel object from the client's cache
-  const discordChannel = discordClient.channels.cache.get(channelId) as TextChannel;
-
-  // send the message to the channel
-  discordChannel.send(message)
-    .then(() => {
-      console.log("Message sent successfully.");
-    })
-    .catch((error) => {
-      console.error("Failed to send message:");
-      console.error(error);
-    });
-};
 
 const getBestPricedOrder = async (targetOrders: IDetailedRelayerMakerOrder[]) => {
 
-var bestPricedHash: string = targetOrders[0].orderHash;
-//console.log("Best Priced Hash", bestPricedHash)
-var priceOfBestHash: number = parseInt(targetOrders[0].percentageOdds);
-//console.log("Price of Best Hash", priceOfBestHash)
+  var bestPricedHash: string = targetOrders[0].orderHash;
+  //console.log("Best Priced Hash", bestPricedHash)
+  var priceOfBestHash: number = parseInt(targetOrders[0].percentageOdds);
+  //console.log("Price of Best Hash", priceOfBestHash)
 
-var bestOrder = targetOrders[0];
-//Find which order is priced best
-targetOrders.forEach(order => {
-  console.log(`Is ${parseInt(order.percentageOdds)}! < ${priceOfBestHash}?`);
+  var bestOrder = targetOrders[0];
+  //Find which order is priced best
+  targetOrders.forEach(order => {
+    console.log(`Is ${parseInt(order.percentageOdds)}! < ${priceOfBestHash}?`);
 
-  if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
-    bestPricedHash = order.orderHash;
-    priceOfBestHash = parseInt(order.percentageOdds);
-    bestOrder = order;
-  } else {
-    console.log("no");
-  }
-  console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays). \nBase token is${bestOrder.baseToken}`);
-});
-return bestOrder;
+    if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
+      bestPricedHash = order.orderHash;
+      priceOfBestHash = parseInt(order.percentageOdds);
+      bestOrder = order;
+    } else {
+      console.log("no");
+    }
+    console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays). \nBase token is${bestOrder.baseToken}`);
+  });
+  return bestOrder;
 }
+
+
 
 async function main() {
 
@@ -235,7 +186,7 @@ async function main() {
 
 
               var bestOrder = await getBestPricedOrder(targetOrders);
-              
+
               if (bestOrder != undefined && bestOrder != null) {
                 const finalOrder = [
                   {
@@ -278,19 +229,19 @@ async function main() {
 
                 try {
                   const result = await sportX.fillOrders(finalOrder, fillAmounts);
-                  sendDiscordMessage('913719533007675425', `CopyBot Filled an ${BET_TOKEN} Order`);
-                  sendDiscordMessage('913719533007675425', JSON.stringify(result));
+                  helperFunctions.sendDiscordMessage('913719533007675425', `CopyBot Filled an ${BET_TOKEN} Order`);
+                  helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
                   console.log(result)
 
                 } catch (error) {
                   console.log(JSON.stringify(error));
                   // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
-                  sendDiscordMessage('913719533007675425', JSON.stringify(error));
+                  helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error));
                 }
               }
             }
             else {
-              sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
+              helperFunctions.sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
 
               console.log("No approroiate orders found");
             }
@@ -308,5 +259,5 @@ async function main() {
   });
 
 }
-setupDiscordClient(process.env.DISCORD_TOKEN);
+helperFunctions.setupDiscordClient(process.env.DISCORD_TOKEN);
 main();

@@ -38,7 +38,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var dotenv = require("dotenv");
 var ably = require("ably");
-var discord_js_1 = require("discord.js");
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var helperFunctions = require("./helperFunctions");
 var nameTags = require('./nameTags');
@@ -73,65 +72,6 @@ var nameTagsLowerCase = Object.fromEntries(Object.entries(nameTags).map(function
     var k = _a[0], v = _a[1];
     return [k.toLowerCase(), v];
 }));
-var discordClient;
-// setup Discord client
-var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                // check if token is provided
-                if (!token) {
-                    console.error("Discord token is not provided.");
-                    return [2 /*return*/];
-                }
-                // create a new Discord client with Guilds intent
-                discordClient = new discord_js_1.Client({
-                    intents: [discord_js_1.GatewayIntentBits.Guilds]
-                });
-                // handle "ready" event when the client is logged in
-                discordClient.on("ready", function () { return __awaiter(void 0, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        if (discordClient.user) {
-                            console.log("Logged into Discord as ".concat(discordClient.user.tag, "!"));
-                        }
-                        else {
-                            console.error("Failed to get user information.");
-                            return [2 /*return*/];
-                        }
-                        return [2 /*return*/];
-                    });
-                }); });
-                // log in to Discord with the provided token
-                return [4 /*yield*/, discordClient.login(token)
-                        .then(function () {
-                        console.log("Login successful.");
-                    })["catch"](function (error) {
-                        console.error("Failed to log in:");
-                        console.error(error);
-                    })];
-            case 1:
-                // log in to Discord with the provided token
-                _a.sent();
-                return [2 /*return*/];
-        }
-    });
-}); };
-// send a message to a specified Discord channel
-var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0, void 0, void 0, function () {
-    var discordChannel;
-    return __generator(this, function (_a) {
-        discordChannel = discordClient.channels.cache.get(channelId);
-        // send the message to the channel
-        discordChannel.send(message)
-            .then(function () {
-            console.log("Message sent successfully.");
-        })["catch"](function (error) {
-            console.error("Failed to send message:");
-            console.error(error);
-        });
-        return [2 /*return*/];
-    });
-}); };
 var getBestPricedOrder = function (targetOrders) { return __awaiter(void 0, void 0, void 0, function () {
     var bestPricedHash, priceOfBestHash, bestOrder;
     return __generator(this, function (_a) {
@@ -292,19 +232,19 @@ function main() {
                                                     return [4 /*yield*/, sportX.fillOrders(finalOrder, fillAmounts)];
                                                 case 4:
                                                     result = _a.sent();
-                                                    sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
-                                                    sendDiscordMessage('913719533007675425', JSON.stringify(result));
+                                                    helperFunctions.sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
+                                                    helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
                                                     console.log(result);
                                                     return [3 /*break*/, 6];
                                                 case 5:
                                                     error_1 = _a.sent();
                                                     console.log(JSON.stringify(error_1));
                                                     // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
-                                                    sendDiscordMessage('913719533007675425', JSON.stringify(error_1));
+                                                    helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error_1));
                                                     return [3 /*break*/, 6];
                                                 case 6: return [3 /*break*/, 8];
                                                 case 7:
-                                                    sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
+                                                    helperFunctions.sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
                                                     console.log("No approroiate orders found");
                                                     _a.label = 8;
                                                 case 8:
@@ -329,5 +269,5 @@ function main() {
         });
     });
 }
-setupDiscordClient(process.env.DISCORD_TOKEN);
+helperFunctions.setupDiscordClient(process.env.DISCORD_TOKEN);
 main();

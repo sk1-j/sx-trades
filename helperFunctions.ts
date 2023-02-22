@@ -1,4 +1,5 @@
 import { convertFromAPIPercentageOdds, IGetTradesRequest, ITrade, ITradesResponse } from "@sx-bet/sportx-js";
+import { Client, GatewayIntentBits, TextChannel } from "discord.js";
 import Web3 from "web3";
 
 
@@ -86,27 +87,15 @@ export function compileDiscordMessage(
 ) {
   marketMaker = shortenEthAddress(marketMaker, 5);
   if (user === "" && marketMakerUsername === "") {
-    console.log("option 1");
-
     // Generate the message without the username or taker username
     return `\n💠 ${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMaker}\n`;
   //Generate message if taker username not found
   } else if(user === "") {
-    console.log("option 2");
-
     return `\n💠 ${taker} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMakerUsername}\n`;
-
-    // Generate the message with the username
-    //return `\n**${match}**\n${takersBet}\n$${stake} @ ${odds}\n${user}\n${taker}`;
-
   //Generate message if maker username not found
   } else if(marketMakerUsername === "") {
-    console.log("option 3");
-
     return `\n💠 ${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMaker}\n`;
-
   } else {
-    console.log("option 4");
     return `\n💠 ${user} bet $${stake} on ${takersBet} @ ${odds}\n${match}\n${sport}: ${league}\nMaker: ${marketMakerUsername}\n`;
 
   }
@@ -131,3 +120,55 @@ export async function getAddressFromENS(web3: Web3, ethereumAddress: string){
 }
 
 
+let discordClient: Client;
+
+// setup Discord client
+export const setupDiscordClient = async (token: string | undefined) => {
+  // check if token is provided
+  if (!token) {
+    console.error("Discord token is not provided.");
+    return;
+  }
+
+  // create a new Discord client with Guilds intent
+  discordClient = new Client({
+    intents: [GatewayIntentBits.Guilds]
+  });
+
+  // handle "ready" event when the client is logged in
+  discordClient.on("ready", async () => {
+    if (discordClient.user) {
+      console.log(`Logged into Discord as ${discordClient.user.tag}!`);
+    } else {
+      console.error("Failed to get user information.");
+      return;
+    }
+  });
+
+  // log in to Discord with the provided token
+  await discordClient.login(token)
+    .then(() => {
+      console.log("Login successful.");
+    })
+    .catch((error) => {
+      console.error("Failed to log in:");
+      console.error(error);
+    });
+    return discordClient;
+};
+
+// send a message to a specified Discord channel
+export const sendDiscordMessage = async (channelId: string, message: string) => {
+  // get the Discord channel object from the client's cache
+  const discordChannel = discordClient.channels.cache.get(channelId) as TextChannel;
+
+  // send the message to the channel
+  discordChannel.send(message)
+    .then(() => {
+      console.log("Message sent successfully.");
+    })
+    .catch((error) => {
+      console.error("Failed to send message:");
+      console.error(error);
+    });
+};
