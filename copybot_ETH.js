@@ -94,6 +94,32 @@ var getBestPricedOrder = function (targetOrders) { return __awaiter(void 0, void
         return [2 /*return*/, bestOrder];
     });
 }); };
+var filterOrders = function (orders, requiredMakerOddsApi, isMakerOutcomeOne) { return __awaiter(void 0, void 0, void 0, function () {
+    var targetOrders;
+    return __generator(this, function (_a) {
+        targetOrders = [];
+        //const targetOrders: IDetailedRelayerMakerOrder[] = [];
+        orders.forEach(function (order) {
+            // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
+            // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
+            console.log("Is order odds, ".concat(order.percentageOdds, ", better than required ").concat(parseInt(requiredMakerOddsApi), " "));
+            console.log("Order base tokden ".concat(order.baseToken, " \n Selected base tokens ").concat(SELECTED_BASE_TOKEN));
+            if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
+                console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? YES"));
+            }
+            else {
+                console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? NO"));
+            }
+            if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
+                parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
+                order.isMakerBettingOutcomeOne === isMakerOutcomeOne) {
+                targetOrders.push(order);
+                console.log("Yes, added to array");
+            }
+        });
+        return [2 /*return*/, targetOrders];
+    });
+}); };
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var sportX, realtime;
@@ -126,7 +152,7 @@ function main() {
                                     var previousFillHash = "";
                                     // Subscribe to the "message" event on the channel
                                     sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                        var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi_1, orders, targetOrders_1, bestOrder, finalOrder, finalDecimalOdds, finalPayout, finalProfit, finalFillAmount, fillAmounts, result, error_1;
+                                        var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi, orders, targetOrders, bestOrder, finalOrder, finalDecimalOdds, finalPayout, finalProfit, finalFillAmount, fillAmounts, result, error_1;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -151,7 +177,7 @@ function main() {
                                                             message.data.bettor.toLowerCase() === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8".toLowerCase() || //
                                                             message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase() || //
                                                             message.data.bettor.toLowerCase() === "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase() //
-                                                        ))) return [3 /*break*/, 9];
+                                                        ))) return [3 /*break*/, 10];
                                                     previousFillHash = message.data.fillHash;
                                                     console.log("Previous fillHash:", previousFillHash);
                                                     console.log(message.data);
@@ -164,36 +190,20 @@ function main() {
                                                     convertedOdds = (0, sportx_js_1.convertFromAPIPercentageOdds)(message.data.odds);
                                                     acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
                                                     requiredMakerOdds = 1 - acceptableOddsTarget;
-                                                    requiredMakerOddsApi_1 = (0, sportx_js_1.convertToAPIPercentageOdds)(requiredMakerOdds).toString();
+                                                    requiredMakerOddsApi = (0, sportx_js_1.convertToAPIPercentageOdds)(requiredMakerOdds).toString();
                                                     return [4 /*yield*/, sportX.getOrders([
                                                             message.data.marketHash,
                                                         ])];
                                                 case 1:
                                                     orders = _a.sent();
-                                                    targetOrders_1 = [];
-                                                    orders.forEach(function (order) {
-                                                        // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
-                                                        // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
-                                                        console.log("Is order odds, ".concat(order.percentageOdds, ", better than required ").concat(parseInt(requiredMakerOddsApi_1), " "));
-                                                        console.log("Order base tokden ".concat(order.baseToken, " \n Selected base tokens ").concat(SELECTED_BASE_TOKEN));
-                                                        if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
-                                                            console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? YES"));
-                                                        }
-                                                        else {
-                                                            console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? NO"));
-                                                        }
-                                                        if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
-                                                            parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi_1) &&
-                                                            order.isMakerBettingOutcomeOne === isMakerOutcomeOne) {
-                                                            targetOrders_1.push(order);
-                                                            console.log("Yes, added to array");
-                                                        }
-                                                    });
-                                                    if (!(targetOrders_1 != undefined && targetOrders_1 != null && targetOrders_1.length != 0)) return [3 /*break*/, 7];
-                                                    return [4 /*yield*/, getBestPricedOrder(targetOrders_1)];
+                                                    return [4 /*yield*/, filterOrders(orders, requiredMakerOddsApi, isMakerOutcomeOne)];
                                                 case 2:
+                                                    targetOrders = _a.sent();
+                                                    if (!(targetOrders != undefined && targetOrders != null && targetOrders.length != 0)) return [3 /*break*/, 8];
+                                                    return [4 /*yield*/, getBestPricedOrder(targetOrders)];
+                                                case 3:
                                                     bestOrder = _a.sent();
-                                                    if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 6];
+                                                    if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 7];
                                                     finalOrder = [
                                                         {
                                                             executor: bestOrder.executor,
@@ -226,31 +236,31 @@ function main() {
                                                         finalFillAmount
                                                         //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
                                                     ];
-                                                    _a.label = 3;
-                                                case 3:
-                                                    _a.trys.push([3, 5, , 6]);
-                                                    return [4 /*yield*/, sportX.fillOrders(finalOrder, fillAmounts)];
+                                                    _a.label = 4;
                                                 case 4:
+                                                    _a.trys.push([4, 6, , 7]);
+                                                    return [4 /*yield*/, sportX.fillOrders(finalOrder, fillAmounts)];
+                                                case 5:
                                                     result = _a.sent();
                                                     helperFunctions.sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
                                                     helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
                                                     console.log(result);
-                                                    return [3 /*break*/, 6];
-                                                case 5:
+                                                    return [3 /*break*/, 7];
+                                                case 6:
                                                     error_1 = _a.sent();
                                                     console.log(JSON.stringify(error_1));
                                                     // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
                                                     helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error_1));
-                                                    return [3 /*break*/, 6];
-                                                case 6: return [3 /*break*/, 8];
-                                                case 7:
+                                                    return [3 /*break*/, 7];
+                                                case 7: return [3 /*break*/, 9];
+                                                case 8:
                                                     helperFunctions.sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
                                                     console.log("No approroiate orders found");
-                                                    _a.label = 8;
-                                                case 8:
-                                                    console.log("finish loop, listening for next noob to snipe");
                                                     _a.label = 9;
-                                                case 9: return [2 /*return*/];
+                                                case 9:
+                                                    console.log("finish loop, listening for next noob to snipe");
+                                                    _a.label = 10;
+                                                case 10: return [2 /*return*/];
                                             }
                                         });
                                     }); });

@@ -70,7 +70,34 @@ const getBestPricedOrder = async (targetOrders: IDetailedRelayerMakerOrder[]) =>
   return bestOrder;
 }
 
+const filterOrders = async (orders: IDetailedRelayerMakerOrder[], requiredMakerOddsApi: string, isMakerOutcomeOne: boolean) => {
+  const targetOrders: IDetailedRelayerMakerOrder[] = [];
 
+  //const targetOrders: IDetailedRelayerMakerOrder[] = [];
+  orders.forEach(order => {
+
+    // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
+    // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
+
+    console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
+    console.log(`Order base tokden ${order.baseToken} \n Selected base tokens ${SELECTED_BASE_TOKEN}`);
+    if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
+      console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? YES`)
+    } else {
+      console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? NO`)
+
+    }
+
+    if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
+      parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
+      order.isMakerBettingOutcomeOne === isMakerOutcomeOne
+    ) {
+      targetOrders.push(order);
+      console.log("Yes, added to array");
+    }
+  });
+  return targetOrders;
+}
 
 async function main() {
 
@@ -160,28 +187,9 @@ async function main() {
             const orders = await sportX.getOrders([
               message.data.marketHash,
             ]);
-            const targetOrders: IDetailedRelayerMakerOrder[] = [];
-            orders.forEach(order => {
-              // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
-              // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
+            
+            const targetOrders = await filterOrders(orders,requiredMakerOddsApi,isMakerOutcomeOne);
 
-              console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
-              console.log(`Order base tokden ${order.baseToken} \n Selected base tokens ${SELECTED_BASE_TOKEN}`);
-              if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
-                console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? YES`)
-              } else {
-                console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? NO`)
-
-              }
-
-              if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
-                parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
-                order.isMakerBettingOutcomeOne === isMakerOutcomeOne
-              ) {
-                targetOrders.push(order);
-                console.log("Yes, added to array");
-              }
-            });
             if (targetOrders != undefined && targetOrders != null && targetOrders.length != 0) {
 
 
