@@ -137,6 +137,27 @@ const stageOrder = (bestOrder: IDetailedRelayerMakerOrder) => {
   return finalOrder;
 }
 
+const convertOddsToDesiredFromMakerPOV = (odds: string) => {
+  // Convert original odds taken in trade to implied % odds
+  const convertedOdds = convertFromAPIPercentageOdds(odds);
+  //Get acceptable odds limit slippage included
+  const acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
+  //Inverse it so it's in makers POV
+  const requiredMakerOdds = 1 - acceptableOddsTarget;
+  //Convert to API format
+  return convertToAPIPercentageOdds(requiredMakerOdds).toString();
+}
+
+
+const isMakerOutcomeOne = (bettingOutcomeOne: boolean) => {
+  if (bettingOutcomeOne) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+
 async function main() {
 
   // Create a connection to the SportX API and wait for it to finish initializing
@@ -204,29 +225,12 @@ async function main() {
             console.log("Previous fillHash:", previousFillHash);
             console.log(message.data);
 
-            //Duplicate this but inreverse so it is betting against the worst bettors
-
-            var isMakerOutcomeOne: boolean;
-            if (message.data.bettingOutcomeOne) {
-              isMakerOutcomeOne = false;
-            } else {
-              isMakerOutcomeOne = true;
-            }
-
-            // Convert original odds taken in trade to implied % odds
-            const convertedOdds = convertFromAPIPercentageOdds(message.data.odds);
-            //Get acceptable odds limit slippage included
-            const acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
-            //Inverse it so it's in makers POV
-            const requiredMakerOdds = 1 - acceptableOddsTarget;
-            //Convert to API format
-            const requiredMakerOddsApi = convertToAPIPercentageOdds(requiredMakerOdds).toString();
 
             const orders = await sportX.getOrders([
               message.data.marketHash,
             ]);
 
-            const targetOrders = await filterOrders(orders, requiredMakerOddsApi, isMakerOutcomeOne);
+            const targetOrders = await filterOrders(orders, convertOddsToDesiredFromMakerPOV(message.data.odds), isMakerOutcomeOne(message.data.bettingOutcomeOne));
 
             if (targetOrders != undefined && targetOrders != null && targetOrders.length != 0) {
 
@@ -237,7 +241,7 @@ async function main() {
 
 
                 try {
-                  const result = await sportX.fillOrders(stageOrder(bestOrder), determineFillAmount(bestOrder.percentageOdds,bestOrder.baseToken));
+                  const result = await sportX.fillOrders(stageOrder(bestOrder), determineFillAmount(bestOrder.percentageOdds, bestOrder.baseToken));
                   helperFunctions.sendDiscordMessage('913719533007675425', `CopyBot Filled an ${BET_TOKEN} Order`);
                   helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
                   console.log(result)

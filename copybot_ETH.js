@@ -159,6 +159,24 @@ var stageOrder = function (bestOrder) {
     ];
     return finalOrder;
 };
+var convertOddsToDesiredFromMakerPOV = function (odds) {
+    // Convert original odds taken in trade to implied % odds
+    var convertedOdds = (0, sportx_js_1.convertFromAPIPercentageOdds)(odds);
+    //Get acceptable odds limit slippage included
+    var acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
+    //Inverse it so it's in makers POV
+    var requiredMakerOdds = 1 - acceptableOddsTarget;
+    //Convert to API format
+    return (0, sportx_js_1.convertToAPIPercentageOdds)(requiredMakerOdds).toString();
+};
+var isMakerOutcomeOne = function (bettingOutcomeOne) {
+    if (bettingOutcomeOne) {
+        return false;
+    }
+    else {
+        return true;
+    }
+};
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var sportX, realtime;
@@ -191,7 +209,7 @@ function main() {
                                     var previousFillHash = "";
                                     // Subscribe to the "message" event on the channel
                                     sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                        var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi, orders, targetOrders, bestOrder, result, error_1;
+                                        var orders, targetOrders, bestOrder, result, error_1;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -220,22 +238,12 @@ function main() {
                                                     previousFillHash = message.data.fillHash;
                                                     console.log("Previous fillHash:", previousFillHash);
                                                     console.log(message.data);
-                                                    if (message.data.bettingOutcomeOne) {
-                                                        isMakerOutcomeOne = false;
-                                                    }
-                                                    else {
-                                                        isMakerOutcomeOne = true;
-                                                    }
-                                                    convertedOdds = (0, sportx_js_1.convertFromAPIPercentageOdds)(message.data.odds);
-                                                    acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
-                                                    requiredMakerOdds = 1 - acceptableOddsTarget;
-                                                    requiredMakerOddsApi = (0, sportx_js_1.convertToAPIPercentageOdds)(requiredMakerOdds).toString();
                                                     return [4 /*yield*/, sportX.getOrders([
                                                             message.data.marketHash,
                                                         ])];
                                                 case 1:
                                                     orders = _a.sent();
-                                                    return [4 /*yield*/, filterOrders(orders, requiredMakerOddsApi, isMakerOutcomeOne)];
+                                                    return [4 /*yield*/, filterOrders(orders, convertOddsToDesiredFromMakerPOV(message.data.odds), isMakerOutcomeOne(message.data.bettingOutcomeOne))];
                                                 case 2:
                                                     targetOrders = _a.sent();
                                                     if (!(targetOrders != undefined && targetOrders != null && targetOrders.length != 0)) return [3 /*break*/, 8];
