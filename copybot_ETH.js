@@ -245,26 +245,26 @@ function main() {
                                     // Keep track of the previous trade that we received so that we can avoid processing the same trade twice
                                     var previousFillHash = "";
                                     // Subscribe to the "message" event on the channel
-                                    sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
+                                    sxChannel.subscribe(function (trade) { return __awaiter(_this, void 0, void 0, function () {
                                         return __generator(this, function (_a) {
                                             // Filter out trades that don't meet our criteria
-                                            if (message.data.tradeStatus === "PENDING" &&
-                                                message.data.betTimeValue > HIDE_BETS_BELOW &&
-                                                message.data.maker === false &&
-                                                message.data.fillHash != previousFillHash &&
-                                                FOLLOW_LIST.includes(message.data.bettor.toLowerCase())) {
-                                                previousFillHash = message.data.fillHash;
+                                            if (trade.data.tradeStatus === "PENDING" &&
+                                                trade.data.betTimeValue > HIDE_BETS_BELOW &&
+                                                trade.data.maker === false &&
+                                                trade.data.fillHash != previousFillHash &&
+                                                FOLLOW_LIST.includes(trade.data.bettor.toLowerCase())) {
+                                                previousFillHash = trade.data.fillHash;
                                                 console.log("Previous fillHash:", previousFillHash);
-                                                console.log(message.data);
+                                                console.log(trade.data);
                                                 try {
-                                                    getTradesFillOrder(sportX, message.data.marketHash, message.data.odds, message.data.bettingOutcomeOne);
+                                                    getTradesFillOrder(sportX, trade.data.marketHash, trade.data.odds, trade.data.bettingOutcomeOne);
                                                 }
                                                 catch (error) {
                                                     console.log(JSON.stringify(error));
                                                     helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error));
                                                     helperFunctions.sendDiscordMessage('913719533007675425', "Trying again");
                                                     try {
-                                                        getTradesFillOrder(sportX, message.data.marketHash, message.data.odds, message.data.bettingOutcomeOne);
+                                                        getTradesFillOrder(sportX, trade.data.marketHash, trade.data.odds, trade.data.bettingOutcomeOne);
                                                     }
                                                     catch (error) {
                                                         console.log(JSON.stringify(error));

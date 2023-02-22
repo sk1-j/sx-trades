@@ -10,6 +10,7 @@ import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Envi
 import * as helperFunctions from './helperFunctions';
 import { measureMemory } from 'vm';
 import { error } from 'console';
+import { convertToContractOrder } from '@sx-bet/sportx-js/dist-cjs/utils/convert';
 const nameTags = require('./nameTags');
 
 let STAKE: number;
@@ -185,8 +186,15 @@ const getTradesFillOrder = async (sportX: ISportX, marketHash: string, odds: str
   }
 }
 
-
 async function main() {
+
+
+////   TODO
+//// create setting on FIXED / DYNAMIC Staking
+/// USe convertToDisplayAmount and coingecko api to determine how much they are betting in each what currency, convert to dollars and bet x% of that
+// 
+  ///
+  //console.log(convertToDisplayAmount('7000000','0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e'));
   // Create a connection to the SportX API and wait for it to finish initializing
   const sportX = await newSportX({
     env: Environments.SxMainnet,
@@ -212,26 +220,26 @@ async function main() {
         // Keep track of the previous trade that we received so that we can avoid processing the same trade twice
         var previousFillHash = "";
         // Subscribe to the "message" event on the channel
-        sxChannel.subscribe(async (message) => {
+        sxChannel.subscribe(async (trade) => {
           // Filter out trades that don't meet our criteria
           if (
-            message.data.tradeStatus === "PENDING" &&
-            message.data.betTimeValue > HIDE_BETS_BELOW &&
-            message.data.maker === false &&
-            message.data.fillHash != previousFillHash &&
-            FOLLOW_LIST.includes(message.data.bettor.toLowerCase())
+            trade.data.tradeStatus === "PENDING" &&
+            trade.data.betTimeValue > HIDE_BETS_BELOW &&
+            trade.data.maker === false &&
+            trade.data.fillHash != previousFillHash &&
+            FOLLOW_LIST.includes(trade.data.bettor.toLowerCase())
           ) {
-            previousFillHash = message.data.fillHash;
+            previousFillHash = trade.data.fillHash;
             console.log("Previous fillHash:", previousFillHash);
-            console.log(message.data);
+            console.log(trade.data);
             try {
-              getTradesFillOrder(sportX, message.data.marketHash, message.data.odds, message.data.bettingOutcomeOne);
+              getTradesFillOrder(sportX, trade.data.marketHash, trade.data.odds, trade.data.bettingOutcomeOne);
             } catch (error) {
               console.log(JSON.stringify(error));
               helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error));
               helperFunctions.sendDiscordMessage('913719533007675425', "Trying again");
               try {
-                getTradesFillOrder(sportX, message.data.marketHash, message.data.odds, message.data.bettingOutcomeOne);
+                getTradesFillOrder(sportX, trade.data.marketHash, trade.data.odds, trade.data.bettingOutcomeOne);
               } catch (error) {
                 console.log(JSON.stringify(error));
                 helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error));
