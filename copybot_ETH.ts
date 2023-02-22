@@ -1,27 +1,27 @@
 import * as dotenv from 'dotenv';
-import * as helperFunctions from './helperFunctions';
-import { Client, TextChannel, GatewayIntentBits } from "discord.js";
 import BigNumber from 'bignumber.js';
-
-import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest, IDetailedRelayerMakerOrder, convertToTakerPayAmount, convertToDisplayAmount } from "@sx-bet/sportx-js";
 import * as ably from "ably";
 import { stringify } from 'querystring';
 import { constants } from 'fs/promises';
 
-//fix stake
-let STAKE: number;
-const USDC_STAKE = 25;
-const WETH_STAKE = 0.015;
-const WSX_STAKE = 250;
+import { Client, TextChannel, GatewayIntentBits } from "discord.js";
+import { convertFromAPIPercentageOdds, ISportX, convertToAPIPercentageOdds, Environments, newSportX, convertToTrueTokenAmount, IGetTradesRequest, IDetailedRelayerMakerOrder, convertToTakerPayAmount, convertToDisplayAmount } from "@sx-bet/sportx-js";
 
+import * as helperFunctions from './helperFunctions';
+const nameTags = require('./nameTags');
+
+let STAKE: number;
+const USDC_STAKE = 5.05;
+const WETH_STAKE = 0.0031;
+const WSX_STAKE = 31;
 
 const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
 const WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
 const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
 
-const HIDE_BETS_BELOW = 200;
+const HIDE_BETS_BELOW = 1;
 const MAX_SLIPPAGE = 0.025;
-const BET_TOKEN: string = "any";
+const BET_TOKEN:string = "any";
 const SELECTED_BASE_TOKEN: string[] = [];
 
 if (BET_TOKEN === "WETH") {
@@ -32,8 +32,6 @@ if (BET_TOKEN === "WETH") {
   SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN);
 } else {
   SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
-
-
 }
 
 console.log("Selected base tokens:", SELECTED_BASE_TOKEN);
@@ -41,31 +39,27 @@ console.log("Selected base tokens:", SELECTED_BASE_TOKEN);
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 
-// Load the nameTags module
-const nameTags = require('./nameTags');
-
-
 // Convert the nameTags hash map to lowercase
-const nameTagsLowerCase = nameTags;
-for (const key in nameTags) {
-  if (nameTags.hasOwnProperty(key)) {
-    nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
-  }
-}
+const nameTagsLowerCase = Object.fromEntries(
+  Object.entries(nameTags).map(([k, v]) => [k.toLowerCase(), v])
+);
 
 let discordClient: Client;
 
-
 // setup Discord client
 const setupDiscordClient = async (token: string | undefined) => {
+  // check if token is provided
   if (!token) {
     console.error("Discord token is not provided.");
     return;
   }
+
+  // create a new Discord client with Guilds intent
   discordClient = new Client({
     intents: [GatewayIntentBits.Guilds]
   });
 
+  // handle "ready" event when the client is logged in
   discordClient.on("ready", async () => {
     if (discordClient.user) {
       console.log(`Logged into Discord as ${discordClient.user.tag}!`);
@@ -75,6 +69,7 @@ const setupDiscordClient = async (token: string | undefined) => {
     }
   });
 
+  // log in to Discord with the provided token
   await discordClient.login(token)
     .then(() => {
       console.log("Login successful.");
@@ -85,9 +80,13 @@ const setupDiscordClient = async (token: string | undefined) => {
     });
 };
 
+
 // send a message to a specified Discord channel
 const sendDiscordMessage = async (channelId: string, message: string) => {
+  // get the Discord channel object from the client's cache
   const discordChannel = discordClient.channels.cache.get(channelId) as TextChannel;
+
+  // send the message to the channel
   discordChannel.send(message)
     .then(() => {
       console.log("Message sent successfully.");
@@ -98,59 +97,33 @@ const sendDiscordMessage = async (channelId: string, message: string) => {
     });
 };
 
-// get a market with the specified hash
-const getMarket = async (hash: string, sportX: ISportX) => {
-  const markets = await sportX.marketLookup([hash]);
-  return markets;
-};
+const getBestPricedOrder = async (targetOrders: IDetailedRelayerMakerOrder[]) => {
 
-let makersMessage: ably.Types.Message;
-let orderHash: ably.Types.Message;
+var bestPricedHash: string = targetOrders[0].orderHash;
+//console.log("Best Priced Hash", bestPricedHash)
+var priceOfBestHash: number = parseInt(targetOrders[0].percentageOdds);
+//console.log("Price of Best Hash", priceOfBestHash)
 
+var bestOrder = targetOrders[0];
+//Find which order is priced best
+targetOrders.forEach(order => {
+  console.log(`Is ${parseInt(order.percentageOdds)}! < ${priceOfBestHash}?`);
 
-const getMaker = async (marketHash: string, fillHash: string, orderHash: string, sportX: ISportX) => {
-  var mrktHash = [marketHash];
-  // GET MAKER HERE
-  var tradeRequest: IGetTradesRequest = {
-    marketHashes: mrktHash,
-    maker: true,
-  };
-  //console.log("tradereq", tradeRequest);
-  //Need to look through every page when doing getTrades
-  var unsettledTrades = await sportX.getTrades(tradeRequest);
-  //console.log("UNSETTLEDTRADES", unsettledTrades);
-  console.log("MSG data:", unsettledTrades.trades[0]);
-  const desiredFillHash = fillHash;
-
-  //Find maker here...
-  var maker = "0x0000000000000000000000000000";
-  //console.log("Unsttled trades", unsettledTrades);
-  console.log("Desired Hash", desiredFillHash);
-
-  console.log("Next Key:", unsettledTrades.nextKey);
-  while (unsettledTrades.nextKey != undefined) {
-    // console.log("Now iterating thru:", unsettledTrades);
-    console.log("next key:", unsettledTrades.nextKey);
-    unsettledTrades.trades.forEach((element, index) => {
-      if (element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS") {
-        console.log("found elemnt");
-        maker = element.bettor;
-        return (maker);
-      }
-    });
-    var tradeRequest: IGetTradesRequest = {
-      marketHashes: mrktHash,
-      maker: true,
-      paginationKey: unsettledTrades.nextKey
-    };
-    unsettledTrades = await sportX.getTrades(tradeRequest);
+  if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
+    bestPricedHash = order.orderHash;
+    priceOfBestHash = parseInt(order.percentageOdds);
+    bestOrder = order;
+  } else {
+    console.log("no");
   }
-  return (maker);
+  console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays). \nBase token is${bestOrder.baseToken}`);
+});
+return bestOrder;
 }
 
-let marketMaker;
 async function main() {
 
+  // Create a connection to the SportX API and wait for it to finish initializing
   const sportX = await newSportX({
     env: Environments.SxMainnet,
     customSidechainProviderUrl: process.env.PROVIDER,
@@ -158,27 +131,33 @@ async function main() {
   });
 
   console.log("Enter Main: ", helperFunctions.printTime());
+
   // Create a new instance of Ably realtime
   const realtime = new ably.Realtime.Promise({
     authUrl: `https://api.sx.bet/user/token`,
   });
-
 
   // Wait for connection to be established
   await new Promise<void>((resolve, reject) => {
     console.log("Connecting...");
     let logicExecuted = false;
 
+    // Subscribe to the "connected" event
     realtime.connection.on("connected", () => {
       resolve();
       if (!logicExecuted) {
-        // Listen for realtime trades
+
+        // Once the connection is established, listen for realtime trades on the "recent_trades" channel
         const sxChannel = realtime.channels.get(`recent_trades`);
         console.log("Listening for Trades @ ", helperFunctions.printTime());
+
+        // Keep track of the previous trade that we received so that we can avoid processing the same trade twice
         var previousFillHash = "";
 
+        // Subscribe to the "message" event on the channel
         sxChannel.subscribe(async (message) => {
 
+          // Filter out trades that don't meet our criteria
           if (message.data.tradeStatus === "PENDING" &&
             message.data.betTimeValue > HIDE_BETS_BELOW &&
             message.data.maker === false &&
@@ -218,14 +197,13 @@ async function main() {
               isMakerOutcomeOne = true;
             }
 
-            // Original odds taken in trade
-
+            // Convert original odds taken in trade to implied % odds
             const convertedOdds = convertFromAPIPercentageOdds(message.data.odds);
-            console.log("Converted Odds:", convertedOdds);
+            //Get acceptable odds limit slippage included
             const acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
-            console.log("Target Odds (2% below):", acceptableOddsTarget);
+            //Inverse it so it's in makers POV
             const requiredMakerOdds = 1 - acceptableOddsTarget;
-            console.log("Required Maker Odds:", requiredMakerOdds);
+            //Convert to API format
             const requiredMakerOddsApi = convertToAPIPercentageOdds(requiredMakerOdds).toString();
 
             const orders = await sportX.getOrders([
@@ -255,25 +233,9 @@ async function main() {
             });
             if (targetOrders != undefined && targetOrders != null && targetOrders.length != 0) {
 
-              var bestPricedHash: string = targetOrders[0].orderHash;
-              //console.log("Best Priced Hash", bestPricedHash)
-              var priceOfBestHash: number = parseInt(targetOrders[0].percentageOdds);
-              //console.log("Price of Best Hash", priceOfBestHash)
 
-              var bestOrder = targetOrders[0];
-              //Find which order is priced best
-              targetOrders.forEach(order => {
-                console.log(`Is ${parseInt(order.percentageOdds)}! < ${priceOfBestHash}?`);
-
-                if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
-                  bestPricedHash = order.orderHash;
-                  priceOfBestHash = parseInt(order.percentageOdds);
-                  bestOrder = order;
-                } else {
-                  console.log("no");
-                }
-                console.log(`Price of bestHash is now ${priceOfBestHash} (hgiher is better as this is the price the mm pays). \nBase token is${bestOrder.baseToken}`);
-              });
+              var bestOrder = await getBestPricedOrder(targetOrders);
+              
               if (bestOrder != undefined && bestOrder != null) {
                 const finalOrder = [
                   {

@@ -37,19 +37,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var dotenv = require("dotenv");
-var helperFunctions = require("./helperFunctions");
+var ably = require("ably");
 var discord_js_1 = require("discord.js");
 var sportx_js_1 = require("@sx-bet/sportx-js");
-var ably = require("ably");
-//fix stake
+var helperFunctions = require("./helperFunctions");
+var nameTags = require('./nameTags');
 var STAKE;
-var USDC_STAKE = 25;
-var WETH_STAKE = 0.015;
-var WSX_STAKE = 250;
+var USDC_STAKE = 5.05;
+var WETH_STAKE = 0.0031;
+var WSX_STAKE = 31;
 var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
 var WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
 var WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
-var HIDE_BETS_BELOW = 200;
+var HIDE_BETS_BELOW = 1;
 var MAX_SLIPPAGE = 0.025;
 var BET_TOKEN = "any";
 var SELECTED_BASE_TOKEN = [];
@@ -68,28 +68,27 @@ else {
 console.log("Selected base tokens:", SELECTED_BASE_TOKEN);
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
-// Load the nameTags module
-var nameTags = require('./nameTags');
 // Convert the nameTags hash map to lowercase
-var nameTagsLowerCase = nameTags;
-for (var key in nameTags) {
-    if (nameTags.hasOwnProperty(key)) {
-        nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
-    }
-}
+var nameTagsLowerCase = Object.fromEntries(Object.entries(nameTags).map(function (_a) {
+    var k = _a[0], v = _a[1];
+    return [k.toLowerCase(), v];
+}));
 var discordClient;
 // setup Discord client
 var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                // check if token is provided
                 if (!token) {
                     console.error("Discord token is not provided.");
                     return [2 /*return*/];
                 }
+                // create a new Discord client with Guilds intent
                 discordClient = new discord_js_1.Client({
                     intents: [discord_js_1.GatewayIntentBits.Guilds]
                 });
+                // handle "ready" event when the client is logged in
                 discordClient.on("ready", function () { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         if (discordClient.user) {
@@ -102,6 +101,7 @@ var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, voi
                         return [2 /*return*/];
                     });
                 }); });
+                // log in to Discord with the provided token
                 return [4 /*yield*/, discordClient.login(token)
                         .then(function () {
                         console.log("Login successful.");
@@ -110,6 +110,7 @@ var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, voi
                         console.error(error);
                     })];
             case 1:
+                // log in to Discord with the provided token
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -120,6 +121,7 @@ var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0
     var discordChannel;
     return __generator(this, function (_a) {
         discordChannel = discordClient.channels.cache.get(channelId);
+        // send the message to the channel
         discordChannel.send(message)
             .then(function () {
             console.log("Message sent successfully.");
@@ -130,66 +132,28 @@ var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0
         return [2 /*return*/];
     });
 }); };
-// get a market with the specified hash
-var getMarket = function (hash, sportX) { return __awaiter(void 0, void 0, void 0, function () {
-    var markets;
+var getBestPricedOrder = function (targetOrders) { return __awaiter(void 0, void 0, void 0, function () {
+    var bestPricedHash, priceOfBestHash, bestOrder;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, sportX.marketLookup([hash])];
-            case 1:
-                markets = _a.sent();
-                return [2 /*return*/, markets];
-        }
+        bestPricedHash = targetOrders[0].orderHash;
+        priceOfBestHash = parseInt(targetOrders[0].percentageOdds);
+        bestOrder = targetOrders[0];
+        //Find which order is priced best
+        targetOrders.forEach(function (order) {
+            console.log("Is ".concat(parseInt(order.percentageOdds), "! < ").concat(priceOfBestHash, "?"));
+            if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
+                bestPricedHash = order.orderHash;
+                priceOfBestHash = parseInt(order.percentageOdds);
+                bestOrder = order;
+            }
+            else {
+                console.log("no");
+            }
+            console.log("Price of bestHash is now ".concat(priceOfBestHash, " (hgiher is better as this is the price the mm pays). \nBase token is").concat(bestOrder.baseToken));
+        });
+        return [2 /*return*/, bestOrder];
     });
 }); };
-var makersMessage;
-var orderHash;
-var getMaker = function (marketHash, fillHash, orderHash, sportX) { return __awaiter(void 0, void 0, void 0, function () {
-    var mrktHash, tradeRequest, unsettledTrades, desiredFillHash, maker, tradeRequest;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                mrktHash = [marketHash];
-                tradeRequest = {
-                    marketHashes: mrktHash,
-                    maker: true
-                };
-                return [4 /*yield*/, sportX.getTrades(tradeRequest)];
-            case 1:
-                unsettledTrades = _a.sent();
-                //console.log("UNSETTLEDTRADES", unsettledTrades);
-                console.log("MSG data:", unsettledTrades.trades[0]);
-                desiredFillHash = fillHash;
-                maker = "0x0000000000000000000000000000";
-                //console.log("Unsttled trades", unsettledTrades);
-                console.log("Desired Hash", desiredFillHash);
-                console.log("Next Key:", unsettledTrades.nextKey);
-                _a.label = 2;
-            case 2:
-                if (!(unsettledTrades.nextKey != undefined)) return [3 /*break*/, 4];
-                // console.log("Now iterating thru:", unsettledTrades);
-                console.log("next key:", unsettledTrades.nextKey);
-                unsettledTrades.trades.forEach(function (element, index) {
-                    if (element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS") {
-                        console.log("found elemnt");
-                        maker = element.bettor;
-                        return (maker);
-                    }
-                });
-                tradeRequest = {
-                    marketHashes: mrktHash,
-                    maker: true,
-                    paginationKey: unsettledTrades.nextKey
-                };
-                return [4 /*yield*/, sportX.getTrades(tradeRequest)];
-            case 3:
-                unsettledTrades = _a.sent();
-                return [3 /*break*/, 2];
-            case 4: return [2 /*return*/, (maker)];
-        }
-    });
-}); };
-var marketMaker;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var sportX, realtime;
@@ -211,15 +175,18 @@ function main() {
                     return [4 /*yield*/, new Promise(function (resolve, reject) {
                             console.log("Connecting...");
                             var logicExecuted = false;
+                            // Subscribe to the "connected" event
                             realtime.connection.on("connected", function () {
                                 resolve();
                                 if (!logicExecuted) {
-                                    // Listen for realtime trades
+                                    // Once the connection is established, listen for realtime trades on the "recent_trades" channel
                                     var sxChannel = realtime.channels.get("recent_trades");
                                     console.log("Listening for Trades @ ", helperFunctions.printTime());
+                                    // Keep track of the previous trade that we received so that we can avoid processing the same trade twice
                                     var previousFillHash = "";
+                                    // Subscribe to the "message" event on the channel
                                     sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                        var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi_1, orders, targetOrders_1, bestPricedHash, priceOfBestHash, bestOrder, finalOrder, finalDecimalOdds, finalPayout, finalProfit, finalFillAmount, fillAmounts, result, error_1;
+                                        var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi_1, orders, targetOrders_1, bestOrder, finalOrder, finalDecimalOdds, finalPayout, finalProfit, finalFillAmount, fillAmounts, result, error_1;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -244,7 +211,7 @@ function main() {
                                                             message.data.bettor.toLowerCase() === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8".toLowerCase() || //
                                                             message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase() || //
                                                             message.data.bettor.toLowerCase() === "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase() //
-                                                        ))) return [3 /*break*/, 8];
+                                                        ))) return [3 /*break*/, 9];
                                                     previousFillHash = message.data.fillHash;
                                                     console.log("Previous fillHash:", previousFillHash);
                                                     console.log(message.data);
@@ -255,11 +222,8 @@ function main() {
                                                         isMakerOutcomeOne = true;
                                                     }
                                                     convertedOdds = (0, sportx_js_1.convertFromAPIPercentageOdds)(message.data.odds);
-                                                    console.log("Converted Odds:", convertedOdds);
                                                     acceptableOddsTarget = convertedOdds * (1 + MAX_SLIPPAGE);
-                                                    console.log("Target Odds (2% below):", acceptableOddsTarget);
                                                     requiredMakerOdds = 1 - acceptableOddsTarget;
-                                                    console.log("Required Maker Odds:", requiredMakerOdds);
                                                     requiredMakerOddsApi_1 = (0, sportx_js_1.convertToAPIPercentageOdds)(requiredMakerOdds).toString();
                                                     return [4 /*yield*/, sportX.getOrders([
                                                             message.data.marketHash,
@@ -285,24 +249,11 @@ function main() {
                                                             console.log("Yes, added to array");
                                                         }
                                                     });
-                                                    if (!(targetOrders_1 != undefined && targetOrders_1 != null && targetOrders_1.length != 0)) return [3 /*break*/, 6];
-                                                    bestPricedHash = targetOrders_1[0].orderHash;
-                                                    priceOfBestHash = parseInt(targetOrders_1[0].percentageOdds);
-                                                    bestOrder = targetOrders_1[0];
-                                                    //Find which order is priced best
-                                                    targetOrders_1.forEach(function (order) {
-                                                        console.log("Is ".concat(parseInt(order.percentageOdds), "! < ").concat(priceOfBestHash, "?"));
-                                                        if (parseInt(order.percentageOdds) > priceOfBestHash && order.maker != "0x92A19377DaEA520f7Ae43F412739D8AA439f16e6") {
-                                                            bestPricedHash = order.orderHash;
-                                                            priceOfBestHash = parseInt(order.percentageOdds);
-                                                            bestOrder = order;
-                                                        }
-                                                        else {
-                                                            console.log("no");
-                                                        }
-                                                        console.log("Price of bestHash is now ".concat(priceOfBestHash, " (hgiher is better as this is the price the mm pays). \nBase token is").concat(bestOrder.baseToken));
-                                                    });
-                                                    if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 5];
+                                                    if (!(targetOrders_1 != undefined && targetOrders_1 != null && targetOrders_1.length != 0)) return [3 /*break*/, 7];
+                                                    return [4 /*yield*/, getBestPricedOrder(targetOrders_1)];
+                                                case 2:
+                                                    bestOrder = _a.sent();
+                                                    if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 6];
                                                     finalOrder = [
                                                         {
                                                             executor: bestOrder.executor,
@@ -335,31 +286,31 @@ function main() {
                                                         finalFillAmount
                                                         //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
                                                     ];
-                                                    _a.label = 2;
-                                                case 2:
-                                                    _a.trys.push([2, 4, , 5]);
-                                                    return [4 /*yield*/, sportX.fillOrders(finalOrder, fillAmounts)];
+                                                    _a.label = 3;
                                                 case 3:
+                                                    _a.trys.push([3, 5, , 6]);
+                                                    return [4 /*yield*/, sportX.fillOrders(finalOrder, fillAmounts)];
+                                                case 4:
                                                     result = _a.sent();
                                                     sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
                                                     sendDiscordMessage('913719533007675425', JSON.stringify(result));
                                                     console.log(result);
-                                                    return [3 /*break*/, 5];
-                                                case 4:
+                                                    return [3 /*break*/, 6];
+                                                case 5:
                                                     error_1 = _a.sent();
                                                     console.log(JSON.stringify(error_1));
                                                     // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
                                                     sendDiscordMessage('913719533007675425', JSON.stringify(error_1));
-                                                    return [3 /*break*/, 5];
-                                                case 5: return [3 /*break*/, 7];
-                                                case 6:
+                                                    return [3 /*break*/, 6];
+                                                case 6: return [3 /*break*/, 8];
+                                                case 7:
                                                     sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
                                                     console.log("No approroiate orders found");
-                                                    _a.label = 7;
-                                                case 7:
-                                                    console.log("finish loop, listening for next noob to snipe");
                                                     _a.label = 8;
-                                                case 8: return [2 /*return*/];
+                                                case 8:
+                                                    console.log("finish loop, listening for next noob to snipe");
+                                                    _a.label = 9;
+                                                case 9: return [2 /*return*/];
                                             }
                                         });
                                     }); });
