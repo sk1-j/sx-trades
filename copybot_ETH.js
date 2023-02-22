@@ -42,14 +42,14 @@ var sportx_js_1 = require("@sx-bet/sportx-js");
 var helperFunctions = require("./helperFunctions");
 var nameTags = require('./nameTags');
 var STAKE;
-var USDC_STAKE = 5.05;
-var WETH_STAKE = 0.0031;
-var WSX_STAKE = 31;
+var USDC_STAKE = 25;
+var WETH_STAKE = 0.015;
+var WSX_STAKE = 200;
 var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
 var WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
 var WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
-var HIDE_BETS_BELOW = 1;
-var MAX_SLIPPAGE = 0.025;
+var HIDE_BETS_BELOW = 500;
+var MAX_SLIPPAGE = 0.03;
 var BET_TOKEN = "any";
 var SELECTED_BASE_TOKEN = [];
 if (BET_TOKEN === "WETH") {
@@ -177,6 +177,37 @@ var isMakerOutcomeOne = function (bettingOutcomeOne) {
         return true;
     }
 };
+var getTradesFillOrder = function (sportX, marketHash, odds, bettingOutcomeOne) { return __awaiter(void 0, void 0, void 0, function () {
+    var orders, targetOrders, bestOrder, result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, sportX.getOrders([
+                    marketHash,
+                ])];
+            case 1:
+                orders = _a.sent();
+                return [4 /*yield*/, filterOrders(orders, convertOddsToDesiredFromMakerPOV(odds), isMakerOutcomeOne(bettingOutcomeOne))];
+            case 2:
+                targetOrders = _a.sent();
+                if (!(targetOrders != undefined && targetOrders != null && targetOrders.length != 0)) return [3 /*break*/, 5];
+                return [4 /*yield*/, getBestPricedOrder(targetOrders)];
+            case 3:
+                bestOrder = _a.sent();
+                return [4 /*yield*/, sportX.fillOrders(stageOrder(bestOrder), determineFillAmount(bestOrder.percentageOdds, bestOrder.baseToken))];
+            case 4:
+                result = _a.sent();
+                helperFunctions.sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
+                helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
+                console.log(result);
+                return [3 /*break*/, 6];
+            case 5:
+                helperFunctions.sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
+                console.log("No approroiate orders found");
+                _a.label = 6;
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var sportX, realtime;
@@ -209,74 +240,51 @@ function main() {
                                     var previousFillHash = "";
                                     // Subscribe to the "message" event on the channel
                                     sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                        var orders, targetOrders, bestOrder, result, error_1;
                                         return __generator(this, function (_a) {
-                                            switch (_a.label) {
-                                                case 0:
-                                                    if (!(message.data.tradeStatus === "PENDING" &&
-                                                        message.data.betTimeValue > HIDE_BETS_BELOW &&
-                                                        message.data.maker === false &&
-                                                        message.data.fillHash != previousFillHash &&
-                                                        //modify below so the addresses are in arrays and i use .cointain() or something 
-                                                        // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
-                                                        (message.data.bettor.toLowerCase() === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x27fC6CF716345018DE6a1274d71F62F11C09d13A".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x10981f03BdA67342B272036571ca008fd53aF4Df".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase() || //
-                                                            message.data.bettor.toLowerCase() === "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase() //
-                                                        ))) return [3 /*break*/, 10];
-                                                    previousFillHash = message.data.fillHash;
-                                                    console.log("Previous fillHash:", previousFillHash);
-                                                    console.log(message.data);
-                                                    return [4 /*yield*/, sportX.getOrders([
-                                                            message.data.marketHash,
-                                                        ])];
-                                                case 1:
-                                                    orders = _a.sent();
-                                                    return [4 /*yield*/, filterOrders(orders, convertOddsToDesiredFromMakerPOV(message.data.odds), isMakerOutcomeOne(message.data.bettingOutcomeOne))];
-                                                case 2:
-                                                    targetOrders = _a.sent();
-                                                    if (!(targetOrders != undefined && targetOrders != null && targetOrders.length != 0)) return [3 /*break*/, 8];
-                                                    return [4 /*yield*/, getBestPricedOrder(targetOrders)];
-                                                case 3:
-                                                    bestOrder = _a.sent();
-                                                    if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 7];
-                                                    _a.label = 4;
-                                                case 4:
-                                                    _a.trys.push([4, 6, , 7]);
-                                                    return [4 /*yield*/, sportX.fillOrders(stageOrder(bestOrder), determineFillAmount(bestOrder.percentageOdds, bestOrder.baseToken))];
-                                                case 5:
-                                                    result = _a.sent();
-                                                    helperFunctions.sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
-                                                    helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
-                                                    console.log(result);
-                                                    return [3 /*break*/, 7];
-                                                case 6:
-                                                    error_1 = _a.sent();
-                                                    console.log(JSON.stringify(error_1));
-                                                    // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
-                                                    helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error_1));
-                                                    return [3 /*break*/, 7];
-                                                case 7: return [3 /*break*/, 9];
-                                                case 8:
-                                                    helperFunctions.sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
-                                                    console.log("No approroiate orders found");
-                                                    _a.label = 9;
-                                                case 9:
-                                                    console.log("finish loop, listening for next noob to snipe");
-                                                    _a.label = 10;
-                                                case 10: return [2 /*return*/];
+                                            // Filter out trades that don't meet our criteria
+                                            if (message.data.tradeStatus === "PENDING" &&
+                                                message.data.betTimeValue > HIDE_BETS_BELOW &&
+                                                message.data.maker === false &&
+                                                message.data.fillHash != previousFillHash &&
+                                                //modify below so the addresses are in arrays and i use .cointain() or something 
+                                                // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
+                                                (message.data.bettor.toLowerCase() === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D".toLowerCase() || //
+                                                    //message.data.bettor.toLowerCase() === "0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626".toLowerCase() ||  //
+                                                    message.data.bettor.toLowerCase() === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0x27fC6CF716345018DE6a1274d71F62F11C09d13A".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C".toLowerCase() || //
+                                                    message.data.bettor.toLowerCase() === "0x10981f03BdA67342B272036571ca008fd53aF4Df".toLowerCase() || //
+                                                    //message.data.bettor.toLowerCase() === "0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF".toLowerCase() ||  //
+                                                    message.data.bettor.toLowerCase() === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8".toLowerCase() || //
+                                                    //message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase() ||  //
+                                                    message.data.bettor.toLowerCase() === "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase() //
+                                                )) {
+                                                previousFillHash = message.data.fillHash;
+                                                console.log("Previous fillHash:", previousFillHash);
+                                                console.log(message.data);
+                                                try {
+                                                    getTradesFillOrder(sportX, message.data.marketHash, message.data.odds, message.data.bettingOutcomeOne);
+                                                }
+                                                catch (error) {
+                                                    console.log(JSON.stringify(error));
+                                                    helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error));
+                                                    helperFunctions.sendDiscordMessage('913719533007675425', "Trying again");
+                                                    try {
+                                                        getTradesFillOrder(sportX, message.data.marketHash, message.data.odds, message.data.bettingOutcomeOne);
+                                                    }
+                                                    catch (error) {
+                                                        console.log(JSON.stringify(error));
+                                                        helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(error));
+                                                    }
+                                                }
+                                                console.log("finish loop, listening for next noob to snipe");
                                             }
+                                            return [2 /*return*/];
                                         });
                                     }); });
                                     logicExecuted = true;
