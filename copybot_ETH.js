@@ -52,6 +52,23 @@ var HIDE_BETS_BELOW = 500;
 var MAX_SLIPPAGE = 0.03;
 var BET_TOKEN = "any";
 var SELECTED_BASE_TOKEN = [];
+var FOLLOW_LIST = [
+    "0x24357454D8d1a0Cc93a6C25fD490467372bC2454".toLowerCase(),
+    "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8".toLowerCase(),
+    "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D".toLowerCase(),
+    "0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626".toLowerCase(),
+    "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304".toLowerCase(),
+    "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99".toLowerCase(),
+    "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988".toLowerCase(),
+    "0x27fC6CF716345018DE6a1274d71F62F11C09d13A".toLowerCase(),
+    "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E".toLowerCase(),
+    "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C".toLowerCase(),
+    "0x10981f03BdA67342B272036571ca008fd53aF4Df".toLowerCase(),
+    //"0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF".toLowerCase()
+    "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8".toLowerCase(),
+    //"0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase(),
+    "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase()
+];
 if (BET_TOKEN === "WETH") {
     SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN);
 }
@@ -199,7 +216,7 @@ var getTradesFillOrder = function (sportX, marketHash, odds, bettingOutcomeOne) 
                 helperFunctions.sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
                 helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
                 console.log(result);
-                return [3 /*break*/, 6];
+                return [2 /*return*/];
             case 5:
                 helperFunctions.sendDiscordMessage('913719533007675425', "Shark placed a bet but was unable to find a bet to copy");
                 console.log("No approroiate orders found");
@@ -246,24 +263,7 @@ function main() {
                                                 message.data.betTimeValue > HIDE_BETS_BELOW &&
                                                 message.data.maker === false &&
                                                 message.data.fillHash != previousFillHash &&
-                                                //modify below so the addresses are in arrays and i use .cointain() or something 
-                                                // 2 arrays whitelist (good traders), blacklist(noobs 2 fade)
-                                                (message.data.bettor.toLowerCase() === "0x24357454D8d1a0Cc93a6C25fD490467372bC2454".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0x43328E4e8FEe5A76D50055B23830C4f13e8bDF5D".toLowerCase() || //
-                                                    //message.data.bettor.toLowerCase() === "0x74CfAE7b1b76Ea063Dd9B63B4FA9d16DA31e0626".toLowerCase() ||  //
-                                                    message.data.bettor.toLowerCase() === "0xEaDa5F319B93fB9E5140ba34fd536b9134dcA304".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0xDEf91d30dA9B50d8CB8d42b09111F822Da173C99".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0x05e39710CB6b7aD5264Bc68Ae6efF298e7F21988".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0x27fC6CF716345018DE6a1274d71F62F11C09d13A".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C".toLowerCase() || //
-                                                    message.data.bettor.toLowerCase() === "0x10981f03BdA67342B272036571ca008fd53aF4Df".toLowerCase() || //
-                                                    //message.data.bettor.toLowerCase() === "0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF".toLowerCase() ||  //
-                                                    message.data.bettor.toLowerCase() === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8".toLowerCase() || //
-                                                    //message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase() ||  //
-                                                    message.data.bettor.toLowerCase() === "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase() //
-                                                )) {
+                                                FOLLOW_LIST.includes(message.data.bettor.toLowerCase())) {
                                                 previousFillHash = message.data.fillHash;
                                                 console.log("Previous fillHash:", previousFillHash);
                                                 console.log(message.data);

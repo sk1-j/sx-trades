@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.sendDiscordMessage = exports.setupDiscordClient = exports.getAddressFromENS = exports.shortenEthAddress = exports.compileDiscordMessage = exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
+exports.getBaseTokenTicker = exports.sendDiscordMessage = exports.setupDiscordClient = exports.getAddressFromENS = exports.shortenEthAddress = exports.compileDiscordMessage = exports.apiToDecimalOdds = exports.hasOwnPropertyIgnoreCase = exports.takersSelection = exports.printMarketDetails = exports.printTime = void 0;
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var discord_js_1 = require("discord.js");
 // Function to print the current date and time to the console
@@ -208,3 +208,19 @@ var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0
     });
 }); };
 exports.sendDiscordMessage = sendDiscordMessage;
+// send a message to a specified Discord channel
+var getBaseTokenTicker = function (baseToken) {
+    if (baseToken.toLowerCase() === "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase()) {
+        return "USDC";
+    }
+    else if (baseToken.toLowerCase() === "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase()) {
+        return "WETH";
+    }
+    else if (baseToken.toLowerCase() === "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase()) {
+        return "WSX";
+    }
+    else {
+        return "???";
+    }
+};
+exports.getBaseTokenTicker = getBaseTokenTicker;

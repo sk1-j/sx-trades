@@ -172,3 +172,16 @@ export const sendDiscordMessage = async (channelId: string, message: string) => 
       console.error(error);
     });
 };
+
+// send a message to a specified Discord channel
+export const getBaseTokenTicker = (baseToken: string) => {
+  if(baseToken.toLowerCase() === "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase()) {
+    return "USDC";
+  } else if (baseToken.toLowerCase() === "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase()) {
+    return "WETH";
+  } else if (baseToken.toLowerCase() === "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase()) {
+    return "WSX";
+  } else {
+    return "???"
+  }
+};
