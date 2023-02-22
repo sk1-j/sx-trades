@@ -24,14 +24,14 @@ const MAX_SLIPPAGE = 0.025;
 const BET_TOKEN: string = "any";
 const SELECTED_BASE_TOKEN: string[] = [];
 
-if(BET_TOKEN==="WETH"){
+if (BET_TOKEN === "WETH") {
   SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN);
-}else if(BET_TOKEN==="USDC"){
-  SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN);  
-}else if (BET_TOKEN==="WSX"){
+} else if (BET_TOKEN === "USDC") {
+  SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN);
+} else if (BET_TOKEN === "WSX") {
   SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN);
 } else {
-  SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN,USDC_BASE_TOKEN,WSX_BASE_TOKEN);
+  SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
 
 
 }
@@ -115,7 +115,6 @@ const getMaker = async (marketHash: string, fillHash: string, orderHash: string,
     marketHashes: mrktHash,
     maker: true,
   };
-
   //console.log("tradereq", tradeRequest);
   //Need to look through every page when doing getTrades
   var unsettledTrades = await sportX.getTrades(tradeRequest);
@@ -132,7 +131,6 @@ const getMaker = async (marketHash: string, fillHash: string, orderHash: string,
   while (unsettledTrades.nextKey != undefined) {
     // console.log("Now iterating thru:", unsettledTrades);
     console.log("next key:", unsettledTrades.nextKey);
-
     unsettledTrades.trades.forEach((element, index) => {
       if (element.fillHash === desiredFillHash && element.orderHash === orderHash && element.maker === true && element.tradeStatus === "SUCCESS") {
         console.log("found elemnt");
@@ -140,7 +138,6 @@ const getMaker = async (marketHash: string, fillHash: string, orderHash: string,
         return (maker);
       }
     });
-
     var tradeRequest: IGetTradesRequest = {
       marketHashes: mrktHash,
       maker: true,
@@ -148,11 +145,8 @@ const getMaker = async (marketHash: string, fillHash: string, orderHash: string,
     };
     unsettledTrades = await sportX.getTrades(tradeRequest);
   }
-
   return (maker);
 }
-
-
 
 let marketMaker;
 async function main() {
@@ -185,7 +179,7 @@ async function main() {
 
         sxChannel.subscribe(async (message) => {
 
-          if (message.data.tradeStatus === "SUCCESS" &&
+          if (message.data.tradeStatus === "PENDING" &&
             message.data.betTimeValue > HIDE_BETS_BELOW &&
             message.data.maker === false &&
             message.data.fillHash != previousFillHash &&
@@ -203,7 +197,7 @@ async function main() {
               message.data.bettor.toLowerCase() === "0x2AdC112D4b138B6BA5419B4240e79Aa885e82a4E".toLowerCase() ||  //
               message.data.bettor.toLowerCase() === "0x0C6dF912d1F70ce04F70AA6329B92fe6b447F14C".toLowerCase() ||  //
               message.data.bettor.toLowerCase() === "0x10981f03BdA67342B272036571ca008fd53aF4Df".toLowerCase() ||  //
-            
+
               message.data.bettor.toLowerCase() === "0xC83aa25FA5829c789DF2AC5976b4A26d49c648FF".toLowerCase() ||  //
               message.data.bettor.toLowerCase() === "0xA041DE78Be445480Fa111E85FB4511A6C471e5F8".toLowerCase() ||  //
               message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase() ||  //
@@ -213,8 +207,6 @@ async function main() {
           ) {
             previousFillHash = message.data.fillHash;
             console.log("Previous fillHash:", previousFillHash);
-
-
             console.log(message.data);
 
             //Duplicate this but inreverse so it is betting against the worst bettors
@@ -243,10 +235,10 @@ async function main() {
             orders.forEach(order => {
               // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
               // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
-             
+
               console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
               console.log(`Order base tokden ${order.baseToken} \n Selected base tokens ${SELECTED_BASE_TOKEN}`);
-              if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())){
+              if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
                 console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? YES`)
               } else {
                 console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? NO`)
@@ -269,8 +261,6 @@ async function main() {
               //console.log("Price of Best Hash", priceOfBestHash)
 
               var bestOrder = targetOrders[0];
-
-
               //Find which order is priced best
               targetOrders.forEach(order => {
                 console.log(`Is ${parseInt(order.percentageOdds)}! < ${priceOfBestHash}?`);
@@ -301,9 +291,9 @@ async function main() {
                   }
                 ];
 
-                if(bestOrder.baseToken.toLowerCase()===WETH_BASE_TOKEN){
+                if (bestOrder.baseToken.toLowerCase() === WETH_BASE_TOKEN) {
                   STAKE = WETH_STAKE;
-                } else if (bestOrder.baseToken.toLowerCase()===USDC_BASE_TOKEN){
+                } else if (bestOrder.baseToken.toLowerCase() === USDC_BASE_TOKEN) {
                   STAKE = USDC_STAKE;
                 } else {
                   STAKE = WSX_STAKE;
@@ -335,8 +325,6 @@ async function main() {
                   // sendDiscordMessage('913719533007675425', "CopyBot Error filling an Order");
                   sendDiscordMessage('913719533007675425', JSON.stringify(error));
                 }
-
-
               }
             }
             else {
@@ -347,7 +335,6 @@ async function main() {
             console.log("finish loop, listening for next noob to snipe");
             //console.log("Best Priced Hash", bestPricedHash)
             //console.log("Price of Best Hash", priceOfBestHash)
-
           }
         });
         logicExecuted = true;

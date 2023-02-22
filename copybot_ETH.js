@@ -223,7 +223,7 @@ function main() {
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
-                                                    if (!(message.data.tradeStatus === "SUCCESS" &&
+                                                    if (!(message.data.tradeStatus === "PENDING" &&
                                                         message.data.betTimeValue > HIDE_BETS_BELOW &&
                                                         message.data.maker === false &&
                                                         message.data.fillHash != previousFillHash &&
