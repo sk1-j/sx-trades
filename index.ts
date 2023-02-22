@@ -18,52 +18,9 @@ for (const key in nameTags) {
   }
 }
 
-let discordClient: Client;
 
 const hideBetsBellow = 1;
 
-
-// setup Discord client
-const setupDiscordClient = async (token: string | undefined) => {
-  if (!token) {
-    console.error("Discord token is not provided.");
-    return;
-  }
-  discordClient = new Client({
-    intents: [GatewayIntentBits.Guilds]
-  });
-  
-  discordClient.on("ready", async () => {
-    if (discordClient.user) {
-      console.log(`Logged into Discord as ${discordClient.user.tag}!`);
-    } else {
-      console.error("Failed to get user information.");
-      return;
-    }
-  });
-  
-  await discordClient.login(token)
-    .then(() => {
-      console.log("Login successful.");
-    })
-    .catch((error) => {
-      console.error("Failed to log in:");
-      console.error(error);
-    });
-};
-
-// send a message to a specified Discord channel
-const sendDiscordMessage = async (channelId: string, message: string) => {
-  const discordChannel = discordClient.channels.cache.get(channelId) as TextChannel;
-  discordChannel.send(message)
-    .then(() => {
-      console.log("Message sent successfully.");
-    })
-    .catch((error) => {
-      console.error("Failed to send message:");
-      console.error(error);
-    });
-};
 
 // get a market with the specified hash
 const getMarket = async (hash: string, sportX: ISportX) => {
@@ -241,9 +198,9 @@ async function main() {
 
                 //Send discord message to Channel
               //Send to CSP
-                sendDiscordMessage('783878646142205962', discordMessage);
+              helperFunctions.sendDiscordMessage('783878646142205962', discordMessage);
                 // Send to private
-                //sendDiscordMessage('913719533007675425', discordMessage);
+                //helperFunctions.sendDiscordMessage('913719533007675425', discordMessage);
               }
             }
         });
@@ -256,5 +213,5 @@ async function main() {
   });
 
 }
-setupDiscordClient(process.env.DISCORD_TOKEN);
+helperFunctions.setupDiscordClient(process.env.DISCORD_TOKEN);
 main();

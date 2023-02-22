@@ -38,7 +38,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var dotenv = require("dotenv");
 var helperFunctions = require("./helperFunctions");
-var discord_js_1 = require("discord.js");
 var sportx_js_1 = require("@sx-bet/sportx-js");
 var ably = require("ably");
 // Load the environment variables from .env file
@@ -52,60 +51,7 @@ for (var key in nameTags) {
         nameTagsLowerCase[key.toLowerCase()] = nameTags[key];
     }
 }
-var discordClient;
 var hideBetsBellow = 1;
-// setup Discord client
-var setupDiscordClient = function (token) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                if (!token) {
-                    console.error("Discord token is not provided.");
-                    return [2 /*return*/];
-                }
-                discordClient = new discord_js_1.Client({
-                    intents: [discord_js_1.GatewayIntentBits.Guilds]
-                });
-                discordClient.on("ready", function () { return __awaiter(void 0, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        if (discordClient.user) {
-                            console.log("Logged into Discord as ".concat(discordClient.user.tag, "!"));
-                        }
-                        else {
-                            console.error("Failed to get user information.");
-                            return [2 /*return*/];
-                        }
-                        return [2 /*return*/];
-                    });
-                }); });
-                return [4 /*yield*/, discordClient.login(token)
-                        .then(function () {
-                        console.log("Login successful.");
-                    })["catch"](function (error) {
-                        console.error("Failed to log in:");
-                        console.error(error);
-                    })];
-            case 1:
-                _a.sent();
-                return [2 /*return*/];
-        }
-    });
-}); };
-// send a message to a specified Discord channel
-var sendDiscordMessage = function (channelId, message) { return __awaiter(void 0, void 0, void 0, function () {
-    var discordChannel;
-    return __generator(this, function (_a) {
-        discordChannel = discordClient.channels.cache.get(channelId);
-        discordChannel.send(message)
-            .then(function () {
-            console.log("Message sent successfully.");
-        })["catch"](function (error) {
-            console.error("Failed to send message:");
-            console.error(error);
-        });
-        return [2 /*return*/];
-    });
-}); };
 // get a market with the specified hash
 var getMarket = function (hash, sportX) { return __awaiter(void 0, void 0, void 0, function () {
     var markets;
@@ -267,9 +213,9 @@ function main() {
                                                         console.log(discordMessage);
                                                         //Send discord message to Channel
                                                         //Send to CSP
-                                                        sendDiscordMessage('783878646142205962', discordMessage);
+                                                        helperFunctions.sendDiscordMessage('783878646142205962', discordMessage);
                                                         // Send to private
-                                                        //sendDiscordMessage('913719533007675425', discordMessage);
+                                                        //helperFunctions.sendDiscordMessage('913719533007675425', discordMessage);
                                                     }
                                                     _a.label = 3;
                                                 case 3: return [2 /*return*/];
@@ -291,5 +237,5 @@ function main() {
         });
     });
 }
-setupDiscordClient(process.env.DISCORD_TOKEN);
+helperFunctions.setupDiscordClient(process.env.DISCORD_TOKEN);
 main();
