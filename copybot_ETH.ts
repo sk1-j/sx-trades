@@ -44,8 +44,6 @@ const nameTagsLowerCase = Object.fromEntries(
   Object.entries(nameTags).map(([k, v]) => [k.toLowerCase(), v])
 );
 
-
-
 const getBestPricedOrder = async (targetOrders: IDetailedRelayerMakerOrder[]) => {
 
   var bestPricedHash: string = targetOrders[0].orderHash;
@@ -97,6 +95,46 @@ const filterOrders = async (orders: IDetailedRelayerMakerOrder[], requiredMakerO
     }
   });
   return targetOrders;
+}
+
+const determineFillAmount = (bestOrderOdds: string, bestOrderBaseToken: string) => {
+  if (bestOrderBaseToken.toLowerCase() === WETH_BASE_TOKEN) {
+    STAKE = WETH_STAKE;
+  } else if (bestOrderBaseToken.toLowerCase() === USDC_BASE_TOKEN) {
+    STAKE = USDC_STAKE;
+  } else {
+    STAKE = WSX_STAKE;
+  }
+
+  //Figure out how much to enter in the function to ensure right bet  size
+  const finalDecimalOdds = 1 / (1 - convertFromAPIPercentageOdds(bestOrderOdds));
+  const finalPayout = finalDecimalOdds * STAKE;
+  const finalProfit = Number((finalPayout - STAKE).toFixed(6));
+  const finalFillAmount = convertToTrueTokenAmount(finalProfit, bestOrderBaseToken);
+  const fillAmounts = [
+    finalFillAmount
+    //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
+  ];
+  return fillAmounts;
+}
+
+const stageOrder = (bestOrder: IDetailedRelayerMakerOrder) => {
+  const finalOrder = [
+    {
+      executor: bestOrder.executor,
+      expiry: bestOrder.expiry,
+      isMakerBettingOutcomeOne: bestOrder.isMakerBettingOutcomeOne,
+      maker: bestOrder.maker,
+      marketHash: bestOrder.marketHash,
+      percentageOdds: bestOrder.percentageOdds,
+      salt: bestOrder.salt,
+      totalBetSize: bestOrder.totalBetSize,
+      baseToken: bestOrder.baseToken,
+      signature: bestOrder.signature,
+      apiExpiry: bestOrder.apiExpiry
+    }
+  ];
+  return finalOrder;
 }
 
 async function main() {
@@ -187,8 +225,8 @@ async function main() {
             const orders = await sportX.getOrders([
               message.data.marketHash,
             ]);
-            
-            const targetOrders = await filterOrders(orders,requiredMakerOddsApi,isMakerOutcomeOne);
+
+            const targetOrders = await filterOrders(orders, requiredMakerOddsApi, isMakerOutcomeOne);
 
             if (targetOrders != undefined && targetOrders != null && targetOrders.length != 0) {
 
@@ -196,47 +234,10 @@ async function main() {
               var bestOrder = await getBestPricedOrder(targetOrders);
 
               if (bestOrder != undefined && bestOrder != null) {
-                const finalOrder = [
-                  {
-                    executor: bestOrder.executor,
-                    expiry: bestOrder.expiry,
-                    isMakerBettingOutcomeOne: bestOrder.isMakerBettingOutcomeOne,
-                    maker: bestOrder.maker,
-                    marketHash: bestOrder.marketHash,
-                    percentageOdds: bestOrder.percentageOdds,
-                    salt: bestOrder.salt,
-                    totalBetSize: bestOrder.totalBetSize,
-                    baseToken: bestOrder.baseToken,
-                    signature: bestOrder.signature,
-                    apiExpiry: bestOrder.apiExpiry
-                  }
-                ];
 
-                if (bestOrder.baseToken.toLowerCase() === WETH_BASE_TOKEN) {
-                  STAKE = WETH_STAKE;
-                } else if (bestOrder.baseToken.toLowerCase() === USDC_BASE_TOKEN) {
-                  STAKE = USDC_STAKE;
-                } else {
-                  STAKE = WSX_STAKE;
-                }
-
-                //Figure out how much to enter in the function to ensure right bet  size
-                const finalDecimalOdds = 1 / (1 - convertFromAPIPercentageOdds(bestOrder.percentageOdds));
-                const finalPayout = finalDecimalOdds * STAKE;
-                const finalProfit = Number((finalPayout - STAKE).toFixed(6));
-
-
-                const finalFillAmount = convertToTrueTokenAmount(finalProfit, bestOrder.baseToken);
-
-
-                const fillAmounts = [
-                  finalFillAmount
-                  //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
-
-                ];
 
                 try {
-                  const result = await sportX.fillOrders(finalOrder, fillAmounts);
+                  const result = await sportX.fillOrders(stageOrder(bestOrder), determineFillAmount(bestOrder.percentageOdds,bestOrder.baseToken));
                   helperFunctions.sendDiscordMessage('913719533007675425', `CopyBot Filled an ${BET_TOKEN} Order`);
                   helperFunctions.sendDiscordMessage('913719533007675425', JSON.stringify(result));
                   console.log(result)

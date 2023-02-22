@@ -120,6 +120,45 @@ var filterOrders = function (orders, requiredMakerOddsApi, isMakerOutcomeOne) { 
         return [2 /*return*/, targetOrders];
     });
 }); };
+var determineFillAmount = function (bestOrderOdds, bestOrderBaseToken) {
+    if (bestOrderBaseToken.toLowerCase() === WETH_BASE_TOKEN) {
+        STAKE = WETH_STAKE;
+    }
+    else if (bestOrderBaseToken.toLowerCase() === USDC_BASE_TOKEN) {
+        STAKE = USDC_STAKE;
+    }
+    else {
+        STAKE = WSX_STAKE;
+    }
+    //Figure out how much to enter in the function to ensure right bet  size
+    var finalDecimalOdds = 1 / (1 - (0, sportx_js_1.convertFromAPIPercentageOdds)(bestOrderOdds));
+    var finalPayout = finalDecimalOdds * STAKE;
+    var finalProfit = Number((finalPayout - STAKE).toFixed(6));
+    var finalFillAmount = (0, sportx_js_1.convertToTrueTokenAmount)(finalProfit, bestOrderBaseToken);
+    var fillAmounts = [
+        finalFillAmount
+        //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
+    ];
+    return fillAmounts;
+};
+var stageOrder = function (bestOrder) {
+    var finalOrder = [
+        {
+            executor: bestOrder.executor,
+            expiry: bestOrder.expiry,
+            isMakerBettingOutcomeOne: bestOrder.isMakerBettingOutcomeOne,
+            maker: bestOrder.maker,
+            marketHash: bestOrder.marketHash,
+            percentageOdds: bestOrder.percentageOdds,
+            salt: bestOrder.salt,
+            totalBetSize: bestOrder.totalBetSize,
+            baseToken: bestOrder.baseToken,
+            signature: bestOrder.signature,
+            apiExpiry: bestOrder.apiExpiry
+        }
+    ];
+    return finalOrder;
+};
 function main() {
     return __awaiter(this, void 0, void 0, function () {
         var sportX, realtime;
@@ -152,7 +191,7 @@ function main() {
                                     var previousFillHash = "";
                                     // Subscribe to the "message" event on the channel
                                     sxChannel.subscribe(function (message) { return __awaiter(_this, void 0, void 0, function () {
-                                        var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi, orders, targetOrders, bestOrder, finalOrder, finalDecimalOdds, finalPayout, finalProfit, finalFillAmount, fillAmounts, result, error_1;
+                                        var isMakerOutcomeOne, convertedOdds, acceptableOddsTarget, requiredMakerOdds, requiredMakerOddsApi, orders, targetOrders, bestOrder, result, error_1;
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
@@ -204,42 +243,10 @@ function main() {
                                                 case 3:
                                                     bestOrder = _a.sent();
                                                     if (!(bestOrder != undefined && bestOrder != null)) return [3 /*break*/, 7];
-                                                    finalOrder = [
-                                                        {
-                                                            executor: bestOrder.executor,
-                                                            expiry: bestOrder.expiry,
-                                                            isMakerBettingOutcomeOne: bestOrder.isMakerBettingOutcomeOne,
-                                                            maker: bestOrder.maker,
-                                                            marketHash: bestOrder.marketHash,
-                                                            percentageOdds: bestOrder.percentageOdds,
-                                                            salt: bestOrder.salt,
-                                                            totalBetSize: bestOrder.totalBetSize,
-                                                            baseToken: bestOrder.baseToken,
-                                                            signature: bestOrder.signature,
-                                                            apiExpiry: bestOrder.apiExpiry
-                                                        }
-                                                    ];
-                                                    if (bestOrder.baseToken.toLowerCase() === WETH_BASE_TOKEN) {
-                                                        STAKE = WETH_STAKE;
-                                                    }
-                                                    else if (bestOrder.baseToken.toLowerCase() === USDC_BASE_TOKEN) {
-                                                        STAKE = USDC_STAKE;
-                                                    }
-                                                    else {
-                                                        STAKE = WSX_STAKE;
-                                                    }
-                                                    finalDecimalOdds = 1 / (1 - (0, sportx_js_1.convertFromAPIPercentageOdds)(bestOrder.percentageOdds));
-                                                    finalPayout = finalDecimalOdds * STAKE;
-                                                    finalProfit = Number((finalPayout - STAKE).toFixed(6));
-                                                    finalFillAmount = (0, sportx_js_1.convertToTrueTokenAmount)(finalProfit, bestOrder.baseToken);
-                                                    fillAmounts = [
-                                                        finalFillAmount
-                                                        //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
-                                                    ];
                                                     _a.label = 4;
                                                 case 4:
                                                     _a.trys.push([4, 6, , 7]);
-                                                    return [4 /*yield*/, sportX.fillOrders(finalOrder, fillAmounts)];
+                                                    return [4 /*yield*/, sportX.fillOrders(stageOrder(bestOrder), determineFillAmount(bestOrder.percentageOdds, bestOrder.baseToken))];
                                                 case 5:
                                                     result = _a.sent();
                                                     helperFunctions.sendDiscordMessage('913719533007675425', "CopyBot Filled an ".concat(BET_TOKEN, " Order"));
