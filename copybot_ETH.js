@@ -48,7 +48,7 @@ var WSX_STAKE = 200;
 var USDC_ENABLED = true;
 var WETH_ENABLED = true;
 var WSX_ENABLED = true;
-var HIDE_BETS_BELOW = 500;
+var HIDE_BETS_BELOW = 70;
 var MAX_SLIPPAGE = 0.03;
 var BET_TOKEN = "any";
 var FOLLOW_LIST = [
@@ -136,14 +136,12 @@ var determineFillAmount = function (bestOrderOdds, bestOrderBaseToken) {
     else {
         STAKE = WSX_STAKE;
     }
-    //Figure out how much to enter in the function to ensure right bet  size
     var finalDecimalOdds = 1 / (1 - (0, sportx_js_1.convertFromAPIPercentageOdds)(bestOrderOdds));
     var finalPayout = finalDecimalOdds * STAKE;
     var finalProfit = Number((finalPayout - STAKE).toFixed(6));
     var finalFillAmount = (0, sportx_js_1.convertToTrueTokenAmount)(finalProfit, bestOrderBaseToken);
     var fillAmounts = [
         finalFillAmount
-        //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
     ];
     return fillAmounts;
 };

@@ -22,7 +22,7 @@ const USDC_ENABLED: boolean = true;
 const WETH_ENABLED: boolean = true;
 const WSX_ENABLED: boolean = true;
 
-const HIDE_BETS_BELOW = 500;
+const HIDE_BETS_BELOW = 70;
 const MAX_SLIPPAGE = 0.03;
 const BET_TOKEN: string = "any";
 
@@ -115,18 +115,16 @@ const determineFillAmount = (bestOrderOdds: string, bestOrderBaseToken: string) 
   } else {
     STAKE = WSX_STAKE;
   }
-
-  //Figure out how much to enter in the function to ensure right bet  size
   const finalDecimalOdds = 1 / (1 - convertFromAPIPercentageOdds(bestOrderOdds));
   const finalPayout = finalDecimalOdds * STAKE;
   const finalProfit = Number((finalPayout - STAKE).toFixed(6));
   const finalFillAmount = convertToTrueTokenAmount(finalProfit, bestOrderBaseToken);
   const fillAmounts = [
     finalFillAmount
-    //convertToTrueTokenAmount(BET_STAKE, USDC_BASE_TOKEN)
   ];
   return fillAmounts;
 }
+
 
 const stageOrder = (bestOrder: IDetailedRelayerMakerOrder) => {
   const finalOrder = [
