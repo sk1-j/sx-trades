@@ -45,13 +45,12 @@ var STAKE;
 var USDC_STAKE = 25;
 var WETH_STAKE = 0.015;
 var WSX_STAKE = 200;
-var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
-var WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
-var WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
+var USDC_ENABLED = true;
+var WETH_ENABLED = true;
+var WSX_ENABLED = true;
 var HIDE_BETS_BELOW = 500;
 var MAX_SLIPPAGE = 0.03;
 var BET_TOKEN = "any";
-var SELECTED_BASE_TOKEN = [];
 var FOLLOW_LIST = [
     "0x24357454D8d1a0Cc93a6C25fD490467372bC2454".toLowerCase(),
     "0x2b231FE033593ea99d3d6983BA8B2Aa74eD905c8".toLowerCase(),
@@ -69,19 +68,20 @@ var FOLLOW_LIST = [
     //"0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase(),
     "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase()
 ];
-if (BET_TOKEN === "WETH") {
-    SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN);
+var ENABLED_BASE_TOKENS = [];
+var USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
+var WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
+var WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
+if (USDC_ENABLED) {
+    ENABLED_BASE_TOKENS.push(WETH_BASE_TOKEN);
 }
-else if (BET_TOKEN === "USDC") {
-    SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN);
+if (WETH_ENABLED) {
+    ENABLED_BASE_TOKENS.push(USDC_BASE_TOKEN);
 }
-else if (BET_TOKEN === "WSX") {
-    SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN);
+if (WSX_ENABLED) {
+    ENABLED_BASE_TOKENS.push(WSX_BASE_TOKEN);
 }
-else {
-    SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
-}
-console.log("Selected base tokens:", SELECTED_BASE_TOKEN);
+console.log("Selected base tokens:", ENABLED_BASE_TOKENS);
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
 // Convert the nameTags hash map to lowercase
@@ -115,19 +115,8 @@ var filterOrders = function (orders, requiredMakerOddsApi, isMakerOutcomeOne) { 
     var targetOrders;
     return __generator(this, function (_a) {
         targetOrders = [];
-        //const targetOrders: IDetailedRelayerMakerOrder[] = [];
         orders.forEach(function (order) {
-            // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
-            // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
-            console.log("Is order odds, ".concat(order.percentageOdds, ", better than required ").concat(parseInt(requiredMakerOddsApi), " "));
-            console.log("Order base tokden ".concat(order.baseToken, " \n Selected base tokens ").concat(SELECTED_BASE_TOKEN));
-            if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
-                console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? YES"));
-            }
-            else {
-                console.log("Does ".concat(SELECTED_BASE_TOKEN, " have  ").concat(order.baseToken, " with? NO"));
-            }
-            if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
+            if (ENABLED_BASE_TOKENS.includes(order.baseToken.toLowerCase()) &&
                 parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
                 order.isMakerBettingOutcomeOne === isMakerOutcomeOne) {
                 targetOrders.push(order);

@@ -17,14 +17,13 @@ const USDC_STAKE = 25;
 const WETH_STAKE = 0.015;
 const WSX_STAKE = 200;
 
-const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
-const WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
-const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
+const USDC_ENABLED: boolean = true;
+const WETH_ENABLED: boolean = true;
+const WSX_ENABLED: boolean = true;
 
 const HIDE_BETS_BELOW = 500;
 const MAX_SLIPPAGE = 0.03;
 const BET_TOKEN: string = "any";
-const SELECTED_BASE_TOKEN: string[] = [];
 
 const FOLLOW_LIST: string[] = [
   "0x24357454D8d1a0Cc93a6C25fD490467372bC2454".toLowerCase(),
@@ -44,18 +43,22 @@ const FOLLOW_LIST: string[] = [
   "0x449472f3d7e02109b0c616b56650fef42a12d634".toLowerCase()
 ];
 
+const ENABLED_BASE_TOKENS: string[] = [];
+const USDC_BASE_TOKEN = "0xe2aa35C2039Bd0Ff196A6Ef99523CC0D3972ae3e".toLowerCase();
+const WETH_BASE_TOKEN = "0xa173954cc4b1810c0dbdb007522adbc182dab380".toLowerCase();
+const WSX_BASE_TOKEN = "0xaa99bE3356a11eE92c3f099BD7a038399633566f".toLowerCase();
 
-if (BET_TOKEN === "WETH") {
-  SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN);
-} else if (BET_TOKEN === "USDC") {
-  SELECTED_BASE_TOKEN.push(USDC_BASE_TOKEN);
-} else if (BET_TOKEN === "WSX") {
-  SELECTED_BASE_TOKEN.push(WSX_BASE_TOKEN);
-} else {
-  SELECTED_BASE_TOKEN.push(WETH_BASE_TOKEN, USDC_BASE_TOKEN, WSX_BASE_TOKEN);
+if (USDC_ENABLED) {
+  ENABLED_BASE_TOKENS.push(WETH_BASE_TOKEN);
 }
+if (WETH_ENABLED) {
+  ENABLED_BASE_TOKENS.push(USDC_BASE_TOKEN);
+}
+if (WSX_ENABLED) {
+  ENABLED_BASE_TOKENS.push(WSX_BASE_TOKEN);
+} 
 
-console.log("Selected base tokens:", SELECTED_BASE_TOKEN);
+console.log("Selected base tokens:", ENABLED_BASE_TOKENS);
 
 // Load the environment variables from .env file
 dotenv.config({ path: '.env' });
@@ -91,23 +94,8 @@ const getBestPricedOrder = async (targetOrders: IDetailedRelayerMakerOrder[]) =>
 
 const filterOrders = async (orders: IDetailedRelayerMakerOrder[], requiredMakerOddsApi: string, isMakerOutcomeOne: boolean) => {
   const targetOrders: IDetailedRelayerMakerOrder[] = [];
-
-  //const targetOrders: IDetailedRelayerMakerOrder[] = [];
   orders.forEach(order => {
-
-    // console.log(`Base toke ${order.baseToken} + USDC: ${USDC_BASE_TOKEN}`);
-    // console.log(`Order odds ${order.percentageOdds} < ${parseInt(requiredMakerOddsApi)}`);
-
-    console.log(`Is order odds, ${order.percentageOdds}, better than required ${parseInt(requiredMakerOddsApi)} `);
-    console.log(`Order base tokden ${order.baseToken} \n Selected base tokens ${SELECTED_BASE_TOKEN}`);
-    if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase())) {
-      console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? YES`)
-    } else {
-      console.log(`Does ${SELECTED_BASE_TOKEN} have  ${order.baseToken} with? NO`)
-
-    }
-
-    if (SELECTED_BASE_TOKEN.includes(order.baseToken.toLowerCase()) &&
+    if (ENABLED_BASE_TOKENS.includes(order.baseToken.toLowerCase()) &&
       parseInt(order.percentageOdds) >= parseInt(requiredMakerOddsApi) &&
       order.isMakerBettingOutcomeOne === isMakerOutcomeOne
     ) {
@@ -231,7 +219,7 @@ async function main() {
             message.data.betTimeValue > HIDE_BETS_BELOW &&
             message.data.maker === false &&
             message.data.fillHash != previousFillHash &&
-            FOLLOW_LIST.includes(message.data.bettor.toLowerCase()) 
+            FOLLOW_LIST.includes(message.data.bettor.toLowerCase())
           ) {
             previousFillHash = message.data.fillHash;
             console.log("Previous fillHash:", previousFillHash);
