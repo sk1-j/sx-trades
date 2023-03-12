@@ -129,7 +129,8 @@ const hashValues = {
   '0xfb49B3d447Ff5E839E089e62171fCf698D952F07' : 'JacobJohn420',  
   '0x449472f3d7e02109b0c616b56650fef42a12d634' : 'spi',
   '0x03ca200aE989124Cc3452285b8A6a946c5346939' : 'FaayBaay',
-
+  '0x2EFF1DeF3299e0A96c37406e6C4f0261ec29b805' : 'ivani',
+  '0x8ECc30212256f18E8e493ff7f0CdBf2118772e50' : 'metos',
   
 
 };

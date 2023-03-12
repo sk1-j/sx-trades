@@ -162,7 +162,7 @@ var getMaker = function (marketHash, fillHash, orderHash, sportX) { return __awa
 var marketMaker;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var sportX, tradeRequest, searchedPages, uniqueHashes, allTrades, addressFile, jsonAddressFile, addressStats, tradesByAddress, _loop_1, addressRequest, addressPageOne, profit, addressFirstPaginationKey, addressFirstPaginationKey, pageNum, _i, _a, value;
+        var sportX, tradeRequest, searchedPages, uniqueHashes, allTrades, firstPage, profit, firstPaginationKey, pageinationKey, pageNum, addressFile, jsonAddressFile, addressStats, tradesByAddress, _loop_1, addressRequest, addressPageOne, profit, addressFirstPaginationKey, addressFirstPaginationKey, pageNum, _i, _a, value;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0: return [4 /*yield*/, (0, sportx_js_1.newSportX)({
@@ -180,6 +180,49 @@ function main() {
                     searchedPages = [];
                     uniqueHashes = [];
                     allTrades = [];
+                    return [4 /*yield*/, sportX.getTrades(tradeRequest)];
+                case 2:
+                    firstPage = _b.sent();
+                    profit = 0;
+                    firstPage.trades.forEach(function (trade, index) {
+                        allTrades.push(trade);
+                    });
+                    firstPaginationKey = firstPage.nextKey;
+                    tradeRequest.paginationKey = firstPage.nextKey;
+                    pageinationKey = '';
+                    pageNum = 0;
+                    _b.label = 3;
+                case 3:
+                    if (!(firstPaginationKey != pageinationKey)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, sportX.getTrades(tradeRequest)];
+                case 4:
+                    firstPage = _b.sent();
+                    tradeRequest.paginationKey = firstPage.nextKey;
+                    pageinationKey = firstPage.nextKey;
+                    if (firstPage.nextKey != firstPaginationKey) {
+                        firstPage.trades.forEach(function (trade, index) {
+                            //console.log("Pushing page to allTrades array: #", index);
+                            allTrades.push(trade);
+                        });
+                    }
+                    pageNum++;
+                    console.log("page: ", pageNum);
+                    return [3 /*break*/, 3];
+                case 5:
+                    // CREATE METHOD FROM ABOVE CODE
+                    allTrades.forEach(function (trade, index) {
+                        console.log("Searching entry ".concat(index, " of allTrades:"));
+                        if (!uniqueHashes.includes(trade.bettor)) {
+                            uniqueHashes.push(trade.bettor);
+                        }
+                    });
+                    fs.writeFile('sx-user-addresses.json', JSON.stringify(uniqueHashes), function (err) {
+                        if (err) {
+                            console.error(err);
+                            return;
+                        }
+                        console.log("Address saved to list");
+                    });
                     console.log("unique hash", uniqueHashes);
                     addressFile = fs.readFileSync('test.json');
                     jsonAddressFile = JSON.parse(addressFile.toString());
@@ -244,18 +287,18 @@ function main() {
                         });
                     };
                     _i = 0, _a = Object.values(jsonAddressFile);
-                    _b.label = 2;
-                case 2:
-                    if (!(_i < _a.length)) return [3 /*break*/, 5];
+                    _b.label = 6;
+                case 6:
+                    if (!(_i < _a.length)) return [3 /*break*/, 9];
                     value = _a[_i];
                     return [5 /*yield**/, _loop_1(value)];
-                case 3:
+                case 7:
                     _b.sent();
-                    _b.label = 4;
-                case 4:
+                    _b.label = 8;
+                case 8:
                     _i++;
-                    return [3 /*break*/, 2];
-                case 5:
+                    return [3 /*break*/, 6];
+                case 9:
                     fs.writeFile('new-test.json', JSON.stringify(tradesByAddress), function (err) {
                         if (err) {
                             console.error(err);
