@@ -44,6 +44,8 @@ var ably = require("ably");
 dotenv.config({ path: '.env' });
 // Load the nameTags module
 var nameTags = require('./nameTags');
+var oppOne = "0x581b6663b8eceb0a43d00e7ad661d4e6f67ba0b2".toLowerCase();
+var oppTwo = "0xf4e6ea5e42a52e4edfe288b5ef5ef9f1694b20f6".toLowerCase();
 // Convert the nameTags hash map to lowercase
 var nameTagsLowerCase = nameTags;
 for (var key in nameTags) {
@@ -144,12 +146,13 @@ function main() {
                                         return __generator(this, function (_a) {
                                             switch (_a.label) {
                                                 case 0:
-                                                    if (!((message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x886e9553f0A770e1874c584fa75D4942e3B2D489".toLowerCase()) || //If copybot1
-                                                        (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x1eBeC5952c4439e356bFb04e5c744670D3E67099".toLowerCase()) || //If copybot2
-                                                        (message.data.tradeStatus === "SUCCESS" &&
-                                                            message.data.status === "SUCCESS" &&
-                                                            message.data.betTimeValue > hideBetsBellow &&
-                                                            message.data.maker === false))) return [3 /*break*/, 3];
+                                                    if (!((message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x886e9553f0A770e1874c584fa75D4942e3B2D489".toLowerCase()) || //if copybot1
+                                                        (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x1eBeC5952c4439e356bFb04e5c744670D3E67099".toLowerCase()) || //if copybot2
+                                                        (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === oppOne) || //if Jwalsh
+                                                        (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === oppTwo) || //if Charlie85
+                                                        (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase()) || //if sk1
+                                                        (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x7ebd0b8B13Fc85B8b639dd05675F94fB445Ffd0E".toLowerCase())) //if d4
+                                                    ) return [3 /*break*/, 3]; //if d4
                                                     // Get market details 
                                                     console.log("Before get market: ", helperFunctions.printTime());
                                                     return [4 /*yield*/, getMarket(message.data.marketHash, sportX)];
@@ -209,15 +212,15 @@ function main() {
                                                     else {
                                                         usernameMaker = "";
                                                     }
-                                                    if (dollarStake > 499 || usernameMaker === '<@281233046227779585>' || usernameMaker === '<@418940152778457099>' || username === 'CopyBot2') {
+                                                    if (dollarStake > hideBetsBellow || usernameMaker === '<@281233046227779585>' || usernameMaker === '<@418940152778457099>' || username === 'CopyBot2') {
                                                         discordMessage = helperFunctions.compileDiscordMessage(event_1, takersBet, dollarStake, decimalOdds, takerAddress, marketMaker_1, sport, league, username, usernameMaker);
                                                         //Print discord message to console
                                                         console.log(discordMessage);
                                                         //Send discord message to Channel
                                                         //Send to CSP
-                                                        helperFunctions.sendDiscordMessage('783878646142205962', discordMessage);
+                                                        //helperFunctions.sendDiscordMessage('783878646142205962', discordMessage);
                                                         // Send to private
-                                                        //helperFunctions.sendDiscordMessage('913719533007675425', discordMessage);
+                                                        helperFunctions.sendDiscordMessage('913719533007675425', discordMessage);
                                                     }
                                                     _a.label = 3;
                                                 case 3: return [2 /*return*/];
