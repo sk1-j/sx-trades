@@ -147,8 +147,7 @@ function main() {
                                                     if (!(message.data.tradeStatus === "SUCCESS" &&
                                                         message.data.status === "SUCCESS" &&
                                                         message.data.betTimeValue > hideBetsBellow &&
-                                                        message.data.maker === false &&
-                                                        message.data.takerAddress)) return [3 /*break*/, 3];
+                                                        message.data.maker === false)) return [3 /*break*/, 3];
                                                     // Get market details 
                                                     console.log("Before get market: ", helperFunctions.printTime());
                                                     return [4 /*yield*/, getMarket(message.data.marketHash, sportX)];

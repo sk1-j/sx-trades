@@ -116,8 +116,7 @@ async function main() {
               (message.data.tradeStatus === "SUCCESS" &&
               message.data.status === "SUCCESS" &&
               message.data.betTimeValue > hideBetsBellow &&
-              message.data.maker === false &&
-              message.data.takerAddress) 
+              message.data.maker === false) 
           ) {
 
 
