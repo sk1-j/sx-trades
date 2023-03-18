@@ -44,8 +44,8 @@ var ably = require("ably");
 dotenv.config({ path: '.env' });
 // Load the nameTags module
 var nameTags = require('./nameTags');
-var oppOne = "0x581b6663b8eceb0a43d00e7ad661d4e6f67ba0b2".toLowerCase();
-var oppTwo = "0xf4e6ea5e42a52e4edfe288b5ef5ef9f1694b20f6".toLowerCase();
+var oppOne = "0x7c00c9f0e7aed440c0c730a9bd9ee4f49de20d5c".toLowerCase(); //kryptonik
+var oppTwo = "".toLowerCase();
 // Convert the nameTags hash map to lowercase
 var nameTagsLowerCase = nameTags;
 for (var key in nameTags) {
