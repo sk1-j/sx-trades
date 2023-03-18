@@ -118,10 +118,9 @@ async function main() {
 
           if ((message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x886e9553f0A770e1874c584fa75D4942e3B2D489".toLowerCase()) || //if copybot1
               (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x1eBeC5952c4439e356bFb04e5c744670D3E67099".toLowerCase()) || //if copybot2
-              (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === oppOne) || //if Jwalsh
-              (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === oppTwo) || //if Charlie85
-              (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x631B34CF9f08615a8653B2438A881FE38211DAb4".toLowerCase()) || //if sk1
-              (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === "0x7ebd0b8B13Fc85B8b639dd05675F94fB445Ffd0E".toLowerCase()) //if d4
+              (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === oppOne) || 
+              (message.data.status === "SUCCESS" && message.data.bettor.toLowerCase() === oppTwo) 
+         //if d4
           ) {
 
 

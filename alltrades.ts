@@ -116,7 +116,8 @@ async function main() {
               (message.data.tradeStatus === "SUCCESS" &&
               message.data.status === "SUCCESS" &&
               message.data.betTimeValue > hideBetsBellow &&
-              message.data.maker === false) 
+              message.data.maker === false &&
+              helperFunctions.hasOwnPropertyIgnoreCase(nameTags, message.data.bettor) === false)  //Hide bets from known users
           ) {
 
 
