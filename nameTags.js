@@ -131,6 +131,8 @@ const hashValues = {
   '0x03ca200aE989124Cc3452285b8A6a946c5346939' : 'FaayBaay',
   '0x2EFF1DeF3299e0A96c37406e6C4f0261ec29b805' : 'ivani',
   '0x8ECc30212256f18E8e493ff7f0CdBf2118772e50' : 'metos',
+  '0x7ebd0b8B13Fc85B8b639dd05675F94fB445Ffd0E' : 'D4',
+
   
 
 };
