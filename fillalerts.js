@@ -215,9 +215,10 @@ function main() {
                                                         console.log(discordMessage);
                                                         //Send discord message to Channel
                                                         //Send to CSP
-                                                        helperFunctions.sendDiscordMessage('783878646142205962', discordMessage);
+                                                        //helperFunctions.sendDiscordMessage('783878646142205962', discordMessage);
                                                         // Send to private
                                                         //helperFunctions.sendDiscordMessage('913719533007675425', discordMessage);
+                                                        helperFunctions.sendDiscordMessage('1086566666701385818', discordMessage);
                                                     }
                                                     _a.label = 3;
                                                 case 3: return [2 /*return*/];
