@@ -205,7 +205,11 @@ async function main() {
               //Send to CSP
               //helperFunctions.sendDiscordMessage('783878646142205962', discordMessage);
                 // Send to private
-                helperFunctions.sendDiscordMessage('913719533007675425', discordMessage);
+                //helperFunctions.sendDiscordMessage('913719533007675425', discordMessage);
+                //send to my discord tournament channel
+                helperFunctions.sendDiscordMessage('1086558962742218812', discordMessage);
+
+                
               }
             }
         });
