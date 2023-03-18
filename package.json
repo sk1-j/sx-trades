@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc index.ts && node index.js",
-    "tourney": "tsc tourneytracker.ts && node tourneytracker.js",
+    "tourney": "tsc tourneytracker.ts && node tourneytracker.js",  
     "alltrades": "tsc alltrades.ts && node alltrades.js",
     "fillalerts": "tsc fillalerts.ts && node fillalerts.js",
     "copybot": "tsc copybot.ts && node copybot.js",

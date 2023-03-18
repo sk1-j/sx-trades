@@ -10,7 +10,7 @@ dotenv.config({ path: '.env' });
 // Load the nameTags module
 const nameTags = require('./nameTags');
 const oppOne = "0x7c00c9f0e7aed440c0c730a9bd9ee4f49de20d5c".toLowerCase(); //kryptonik
-const oppTwo = "".toLowerCase(); 
+const oppTwo = "0x86671C64518a59e7D3f8d2B06BD3D9ee96999D77".toLowerCase(); 
 
 
 

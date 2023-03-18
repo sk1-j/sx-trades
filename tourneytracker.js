@@ -45,7 +45,7 @@ dotenv.config({ path: '.env' });
 // Load the nameTags module
 var nameTags = require('./nameTags');
 var oppOne = "0x7c00c9f0e7aed440c0c730a9bd9ee4f49de20d5c".toLowerCase(); //kryptonik
-var oppTwo = "".toLowerCase();
+var oppTwo = "0x86671C64518a59e7D3f8d2B06BD3D9ee96999D77".toLowerCase();
 // Convert the nameTags hash map to lowercase
 var nameTagsLowerCase = nameTags;
 for (var key in nameTags) {

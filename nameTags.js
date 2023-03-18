@@ -132,8 +132,6 @@ const hashValues = {
   '0x2EFF1DeF3299e0A96c37406e6C4f0261ec29b805' : 'ivani',
   '0x8ECc30212256f18E8e493ff7f0CdBf2118772e50' : 'metos',
   '0x7ebd0b8B13Fc85B8b639dd05675F94fB445Ffd0E' : 'D4',
-
-  
-
+  '0x86671C64518a59e7D3f8d2B06BD3D9ee96999D77' : '4t7',
 };
 module.exports = hashValues;
